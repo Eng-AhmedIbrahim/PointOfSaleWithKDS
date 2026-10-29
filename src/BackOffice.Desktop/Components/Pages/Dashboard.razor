@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @using BackOffice.Desktop.Models
 @attribute [Authorize]
 @inject IReportingErpService ReportingService
@@ -670,10 +670,12 @@
 
     // Effective date range for all API calls
     private DateTime _effectiveDateFrom => 
-        _selectedFilter == "Range" ? (_rangeStart ?? SelectedDate ?? DateTime.Today) : (SelectedDate ?? DateTime.Today);
+        _selectedFilter == "Range" ? (_rangeStart ?? SelectedDate ?? DateTime.Today) :
+        _selectedFilter == "ThisMonth" ? (_rangeStart ?? (SelectedDate.HasValue ? new DateTime(SelectedDate.Value.Year, SelectedDate.Value.Month, 1) : DateTime.Today)) :
+        (SelectedDate ?? DateTime.Today);
     private DateTime? _effectiveDateTo =>
         _selectedFilter == "Range" ? _rangeEnd :
-        _selectedFilter == "ThisMonth" ? SelectedDate : null;
+        _selectedFilter == "ThisMonth" ? (_rangeEnd ?? SelectedDate) : null;
 
     // Date range label for header display
     private string _dateRangeLabel =>
@@ -851,29 +853,64 @@
             var dateTo = _effectiveDateTo ?? dateFrom;
             int totalDays = (int)(dateTo - dateFrom).TotalDays + 1;
 
-            var dailyData = (_todayOrders ?? new())
+            var sourceOrders = (SummaryInfo?.DetailedOrders != null && SummaryInfo.DetailedOrders.Any()) 
+                ? SummaryInfo.DetailedOrders 
+                : (_todayOrders ?? new());
+
+            var dailyData = sourceOrders
                 .Where(o => o.OrderDate.HasValue && o.OrderState == "Completed" && (o.GrandTotal ?? 0) > 0)
                 .GroupBy(o => o.OrderDate!.Value.Date)
                 .Select(g => new { Day = g.Key, Total = (double)g.Sum(o => o.GrandTotal ?? 0) })
                 .ToDictionary(x => x.Day, x => x.Total);
 
-            // Show up to 15 evenly spaced days to avoid label crowding
-            int step = Math.Max(1, totalDays / 15);
-            for (var d = dateFrom; d <= dateTo; d = d.AddDays(step))
+            if (totalDays > 120)
             {
-                double val = 0;
-                for (int s = 0; s < step; s++)
+                // Group by Month for long ranges (e.g. up to a year)
+                var cur = new DateTime(dateFrom.Year, dateFrom.Month, 1);
+                var endMonth = new DateTime(dateTo.Year, dateTo.Month, 1);
+                while (cur <= endMonth)
                 {
-                    if (dailyData.TryGetValue(d.AddDays(s), out var dv)) val += dv;
+                    var nextMonth = cur.AddMonths(1);
+                    double monthTotal = dailyData
+                        .Where(kv => kv.Key >= cur && kv.Key < nextMonth)
+                        .Sum(kv => kv.Value);
+
+                    _trendDataPoints.Add(new SalesDataPoint 
+                    { 
+                        Time = cur.ToString("MM/yyyy"), 
+                        Value = Math.Round(monthTotal, 0) 
+                    });
+                    cur = nextMonth;
                 }
-                _trendDataPoints.Add(new SalesDataPoint { Time = d.ToString("MM/dd"), Value = Math.Round(val, 0) });
+            }
+            else
+            {
+                // Daily view: 1 point per day if <= 31 days (entire month), or spaced for medium ranges
+                int maxPoints = 20;
+                int step = (totalDays <= 31) ? 1 : Math.Max(1, (int)Math.Ceiling((double)totalDays / maxPoints));
+
+                for (var d = dateFrom.Date; d <= dateTo.Date; d = d.AddDays(step))
+                {
+                    double val = 0;
+                    for (int s = 0; s < step; s++)
+                    {
+                        var targetDay = d.AddDays(s);
+                        if (targetDay <= dateTo.Date && dailyData.TryGetValue(targetDay, out var dv))
+                        {
+                            val += dv;
+                        }
+                    }
+                    _trendDataPoints.Add(new SalesDataPoint 
+                    { 
+                        Time = (totalDays <= 31) ? d.ToString("dd/MM") : d.ToString("MM/dd"), 
+                        Value = Math.Round(val, 0) 
+                    });
+                }
             }
 
-            // Ensure at least a few points if empty
             if (!_trendDataPoints.Any())
             {
-                for (var d = dateFrom; d <= dateTo; d = d.AddDays(step))
-                    _trendDataPoints.Add(new SalesDataPoint { Time = d.ToString("MM/dd"), Value = 0 });
+                _trendDataPoints.Add(new SalesDataPoint { Time = dateFrom.ToString("dd/MM"), Value = 0 });
             }
         }
         else

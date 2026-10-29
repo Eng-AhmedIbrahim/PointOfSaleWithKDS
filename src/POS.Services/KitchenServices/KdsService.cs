@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using POS.Contract.Dtos.KitchenDtos;
 using POS.Core.Entities.Kitchen;
 using POS.Core.Entities.OrderEntity;
@@ -179,7 +179,7 @@ public class KdsService : IKdsService
                 {
                     Id = d.Id,
                     MenuSalesItemId = d.MenuSalesItemId,
-                    ItemName = d.ItemNameAr ?? d.ItemName ?? "ØµÙ†Ù",
+                    ItemName = d.ItemNameAr ?? d.ItemName ?? "صنف",
                     ItemNameAr = d.ItemNameAr,
                     Quantity = d.Quantity ?? 1,
                     CategoryId = d.CategoryId,
@@ -243,7 +243,7 @@ public class KdsService : IKdsService
                 {
                     Id = d.Id,
                     MenuSalesItemId = d.MenuSalesItemId,
-                    ItemName = d.ItemNameAr ?? d.ItemName ?? "ØµÙ†Ù",
+                    ItemName = d.ItemNameAr ?? d.ItemName ?? "صنف",
                     ItemNameAr = d.ItemNameAr,
                     Quantity = d.Quantity ?? 1,
                     CategoryId = d.CategoryId,
@@ -305,8 +305,8 @@ public class KdsService : IKdsService
 
     private static string GetOrderTypeArabic(OrderTypes? type) => type switch
     {
-        OrderTypes.Delivery => "Ø¯Ù„ÙŠÙØ±ÙŠ",
-        OrderTypes.DineIn => "ØµØ§Ù„Ø©",
-        _ => "ØªÙŠÙƒ Ø£ÙˆØ§ÙŠ"
+        OrderTypes.Delivery => "دليفري",
+        OrderTypes.DineIn => "صالة",
+        _ => "تيك أواي"
     };
 }
