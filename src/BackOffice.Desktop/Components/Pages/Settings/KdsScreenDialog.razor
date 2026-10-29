@@ -38,63 +38,60 @@
             </MudRadioGroup>
 
             <!-- Order Number Filter (All / Odd / Even) -->
-            @if (Screen.ScreenType == "Kitchen")
-            {
-                <MudDivider Class="my-2" />
-                <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">توزيع الأوردرات (زوجي / فردي):</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    يمكنك تقسيم أوردرات المطبخ بالتساوي إذا كان لديك شاشتان
-                </MudText>
-                <MudRadioGroup @bind-Value="Screen.NumberFilter">
-                    <MudRadio Value="@("All")" Color="Color.Primary">
-                        <b>الكل (All)</b> — استقبال جميع الأوردرات
-                    </MudRadio>
-                    <MudRadio Value="@("Odd")" Color="Color.Info">
-                        <b>فردي فقط (Odd Only)</b> — الأوردرات 1، 3، 5، 7...
-                    </MudRadio>
-                    <MudRadio Value="@("Even")" Color="Color.Success">
-                        <b>زوجي فقط (Even Only)</b> — الأوردرات 2، 4، 6، 8...
-                    </MudRadio>
-                </MudRadioGroup>
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">توزيع الأوردرات (زوجي / فردي):</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                يمكنك تقسيم الأوردرات بالتساوي إذا كان لديك شاشتان أو أكثر
+            </MudText>
+            <MudRadioGroup @bind-Value="Screen.NumberFilter">
+                <MudRadio Value="@("All")" Color="Color.Primary">
+                    <b>الكل (All)</b> — استقبال جميع الأوردرات
+                </MudRadio>
+                <MudRadio Value="@("Odd")" Color="Color.Info">
+                    <b>فردي فقط (Odd Only)</b> — الأوردرات 1، 3، 5، 7...
+                </MudRadio>
+                <MudRadio Value="@("Even")" Color="Color.Success">
+                    <b>زوجي فقط (Even Only)</b> — الأوردرات 2، 4، 6، 8...
+                </MudRadio>
+            </MudRadioGroup>
 
-                <!-- Category Filtering -->
-                <MudDivider Class="my-2" />
-                <div class="d-flex justify-space-between align-center">
-                    <div>
-                        <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">فلترة الأقسام والأصناف:</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            حدد الأقسام التي تظهر أصنافها على هذه الشاشة (مثل مسارات الطابعات تماماً)
-                        </MudText>
-                    </div>
-                    <MudButton Size="Size.Small" Variant="MudBlazor.Variant.Text" Color="Color.Primary" OnClick="SelectAllCategories">
-                        تحديد الكل
-                    </MudButton>
+            <!-- Category Filtering -->
+            <MudDivider Class="my-2" />
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">فلترة الأقسام والأصناف:</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        حدد الأقسام التي تظهر أصنافها على هذه الشاشة (مثل مسارات الطابعات تماماً)
+                    </MudText>
                 </div>
+                <MudButton Size="Size.Small" Variant="MudBlazor.Variant.Text" Color="Color.Primary" OnClick="SelectAllCategories">
+                    تحديد الكل
+                </MudButton>
+            </div>
 
-                @if (_isLoadingCategories)
-                {
-                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-2" />
-                }
-                else
-                {
-                    <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
-                        <MudGrid Spacing="1">
-                            @foreach (var cat in _availableCategories)
-                            {
-                                bool isChecked = _selectedCatIds.Contains(cat.Id);
-                                <MudItem xs="6">
-                                    <MudCheckBox T="bool" 
-                                                 Value="isChecked" 
-                                                 ValueChanged="@((bool val) => ToggleCategory(cat.Id, val))" 
-                                                 Dense="true" 
-                                                 Color="Color.Primary">
-                                        <span style="font-size: 0.85rem;">@(cat.ArabicName ?? cat.EnglishName ?? "قسم")</span>
-                                    </MudCheckBox>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </div>
-                }
+            @if (_isLoadingCategories)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-2" />
+            }
+            else
+            {
+                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+                    <MudGrid Spacing="1">
+                        @foreach (var cat in _availableCategories)
+                        {
+                            bool isChecked = _selectedCatIds.Contains(cat.Id);
+                            <MudItem xs="6">
+                                <MudCheckBox T="bool" 
+                                             Value="isChecked" 
+                                             ValueChanged="@((bool val) => ToggleCategory(cat.Id, val))" 
+                                             Dense="true" 
+                                             Color="Color.Primary">
+                                    <span style="font-size: 0.85rem;">@(cat.ArabicName ?? cat.EnglishName ?? "قسم")</span>
+                                </MudCheckBox>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </div>
             }
 
             <!-- Active Status -->

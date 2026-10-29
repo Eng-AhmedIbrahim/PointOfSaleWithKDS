@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "FeatureName": "EnableReservation",
     "NameEn": "Enable Reservation System",
@@ -414,6 +414,14 @@
     "ModuleName": "Startup",
     "ScreenName": "General",
     "Value": false
+  },
+  {
+    "FeatureName": "EnableKdsSystem",
+    "NameEn": "Enable Kitchen & Pickup Display System",
+    "NameAr": "تفعيل نظام شاشات المطبخ والبيكاب",
+    "ModuleName": "Kitchen",
+    "ScreenName": "KDS",
+    "Value": true
   },
   {
     "FeatureName": "IsCallCenter",

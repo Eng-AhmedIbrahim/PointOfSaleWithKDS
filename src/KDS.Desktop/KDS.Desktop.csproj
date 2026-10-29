@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>KDS.Desktop</RootNamespace>
     <AssemblyName>KDS.Desktop</AssemblyName>
+    <ApplicationIcon>kdslogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
