@@ -1,0 +1,489 @@
+@page "/kitchen/{BranchId:int}/{ScreenId:int}"
+@inject IKdsErpService KdsService
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@implements IDisposable
+
+<div class="kds-container" tabindex="0" @onkeydown="HandleKeyDown" @ref="_containerRef">
+    <!-- Header Bar -->
+    <div class="kds-header">
+        <div class="kds-header-right">
+            <button class="btn-back" @onclick="GoBack">← رجوع</button>
+            <div class="kds-title">
+                <span class="kds-title-icon">👨‍🍳</span>
+                شاشة المطبخ
+            </div>
+        </div>
+        <div class="kds-header-center">
+            <span class="ticket-count">@_tickets.Count طلب نشط</span>
+            @if (_lastBumpedOrderId.HasValue)
+            {
+                <button class="btn-recall" @onclick="RecallLast">↩ استرجاع آخر طلب (R)</button>
+            }
+        </div>
+        <div class="kds-header-left">
+            <div class="clock">@_currentTime.ToString("HH:mm:ss")</div>
+            <div class="branch-info">فرع @BranchId | شاشة @ScreenId</div>
+        </div>
+    </div>
+
+    <!-- Loading / Empty State -->
+    @if (_isLoading)
+    {
+        <div class="kds-center">
+            <div class="loading-spinner"></div>
+            <div style="color:#64748b;margin-top:1rem;">جاري التحميل...</div>
+        </div>
+    }
+    else if (_tickets.Count == 0)
+    {
+        <div class="kds-center">
+            <div style="font-size:4rem;">✅</div>
+            <div style="color:#10b981;font-size:1.5rem;font-weight:700;margin-top:1rem;">لا توجد طلبات حالياً</div>
+            <div style="color:#64748b;margin-top:0.5rem;">الطلبات الجديدة ستظهر هنا تلقائياً</div>
+        </div>
+    }
+    else
+    {
+        <!-- Ticket Grid -->
+        <div class="kds-grid">
+            @for (int i = 0; i < _tickets.Count; i++)
+            {
+                var ticket = _tickets[i];
+                var idx = i;
+                var timerClass = ticket.ElapsedMinutes < 5 ? "timer-green"
+                               : ticket.ElapsedMinutes < 10 ? "timer-yellow"
+                               : "timer-red";
+                <div class="kds-ticket @(idx == _selectedIndex ? "ticket-selected" : "") @timerClass-border"
+                     @onclick="() => SelectAndFocus(idx)">
+                    <!-- Ticket Header -->
+                    <div class="ticket-top">
+                        <div class="order-number">#@ticket.DailyOrderNumber</div>
+                        <div class="@timerClass timer-badge">
+                            ⏱ @FormatElapsed(ticket.ElapsedMinutes)
+                        </div>
+                    </div>
+
+                    <!-- Order Info -->
+                    <div class="ticket-meta">
+                        <div class="order-type-badge">@ticket.OrderTypeName</div>
+                        @if (!string.IsNullOrEmpty(ticket.TableName))
+                        {
+                            <div class="meta-item">🪑 @ticket.TableName</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                        {
+                            <div class="meta-item">👤 @ticket.CustomerName</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.WaiterName))
+                        {
+                            <div class="meta-item">🧑‍💼 @ticket.WaiterName</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.OrderNotice))
+                        {
+                            <div class="notice-badge">⚠️ @ticket.OrderNotice</div>
+                        }
+                    </div>
+
+                    <!-- Items List -->
+                    <div class="ticket-items">
+                        @foreach (var item in ticket.Items)
+                        {
+                            <div class="ticket-item @(item.IsCompleted ? "item-done" : "")">
+                                <span class="item-qty">@item.Quantity×</span>
+                                <div class="item-details">
+                                    <div class="item-name">@(!string.IsNullOrEmpty(item.ItemNameAr) ? item.ItemNameAr : item.ItemName)</div>
+                                    @if (!string.IsNullOrEmpty(item.CategoryName))
+                                    {
+                                        <div class="item-cat">@item.CategoryName</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Comment))
+                                    {
+                                        <div class="item-comment">💬 @item.Comment</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Bump Button -->
+                    <div class="ticket-footer">
+                        <button class="btn-bump" @onclick="() => BumpOrder(ticket.OrderId)" @onclick:stopPropagation>
+                            ✓ تم التحضير (Enter)
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Keyboard Legend -->
+    <div class="kds-legend">
+        <span>← → أو ↑ ↓ تنقل</span>
+        <span class="sep">|</span>
+        <span>Enter / Space تم التحضير</span>
+        <span class="sep">|</span>
+        <span>R استرجاع</span>
+        <span class="sep">|</span>
+        <span>Home أول طلب</span>
+        <span class="sep">|</span>
+        <span>End آخر طلب</span>
+    </div>
+</div>
+
+<style>
+    .kds-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: #0b1120;
+        color: #e2e8f0;
+        direction: rtl;
+        outline: none;
+        font-family: 'Cairo', 'Outfit', sans-serif;
+    }
+    .kds-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #0f172a;
+        border-bottom: 2px solid #1e293b;
+        padding: 0.6rem 1.2rem;
+        min-height: 56px;
+        flex-shrink: 0;
+    }
+    .kds-header-right, .kds-header-center, .kds-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .kds-header-left { flex-direction: column; align-items: flex-end; gap: 0; }
+    .btn-back {
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #94a3b8;
+        border-radius: 8px;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: #10b981; color: #10b981; }
+    .kds-title { font-size: 1.2rem; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 0.5rem; }
+    .kds-title-icon { font-size: 1.5rem; }
+    .ticket-count { background: #10b981; color: #fff; border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.9rem; font-weight: 700; }
+    .btn-recall {
+        background: #f59e0b;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+    .clock { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; font-family: 'Outfit', monospace; }
+    .branch-info { font-size: 0.75rem; color: #64748b; }
+
+    .kds-center {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .loading-spinner {
+        width: 48px; height: 48px;
+        border: 4px solid #334155;
+        border-top-color: #10b981;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .kds-grid {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        overflow-y: auto;
+    }
+
+    .kds-ticket {
+        background: #1e293b;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        width: 260px;
+        min-width: 220px;
+        max-width: 300px;
+        flex: 1 1 240px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: all 0.15s;
+        overflow: hidden;
+    }
+    .kds-ticket:hover { border-color: #475569; }
+    .ticket-selected {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 20px rgba(16,185,129,0.35);
+        background: #1a3040 !important;
+    }
+    .green-border { border-top: 4px solid #10b981 !important; }
+    .yellow-border { border-top: 4px solid #f59e0b !important; }
+    .red-border { border-top: 4px solid #ef4444 !important; }
+
+    .ticket-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0.75rem 0.3rem;
+    }
+    .order-number { font-size: 1.8rem; font-weight: 900; color: #e2e8f0; }
+    .timer-badge { font-size: 0.9rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; }
+    .timer-green { color: #10b981; }
+    .timer-yellow { color: #f59e0b; animation: none; }
+    .timer-red { color: #ef4444; animation: pulse 1s ease-in-out infinite; }
+    @@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+    .ticket-meta {
+        padding: 0 0.75rem 0.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        align-items: center;
+    }
+    .order-type-badge {
+        background: #334155;
+        color: #94a3b8;
+        border-radius: 6px;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    .meta-item { font-size: 0.78rem; color: #94a3b8; }
+    .notice-badge {
+        width: 100%;
+        background: rgba(245,158,11,0.15);
+        color: #f59e0b;
+        border-radius: 6px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.78rem;
+        margin-top: 0.2rem;
+    }
+
+    .ticket-items {
+        flex: 1;
+        padding: 0 0.75rem;
+        border-top: 1px solid #334155;
+        max-height: 240px;
+        overflow-y: auto;
+    }
+    .ticket-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #1e3a4a;
+    }
+    .ticket-item:last-child { border-bottom: none; }
+    .item-done { opacity: 0.4; text-decoration: line-through; }
+    .item-qty { font-size: 1rem; font-weight: 800; color: #10b981; min-width: 28px; }
+    .item-details { flex: 1; }
+    .item-name { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; }
+    .item-cat { font-size: 0.72rem; color: #64748b; }
+    .item-comment { font-size: 0.75rem; color: #f59e0b; margin-top: 0.15rem; }
+
+    .ticket-footer {
+        padding: 0.6rem 0.75rem;
+        border-top: 1px solid #334155;
+    }
+    .btn-bump {
+        width: 100%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        font-family: 'Cairo', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-bump:hover { background: linear-gradient(135deg, #059669, #047857); }
+    .btn-bump:active { transform: scale(0.97); }
+
+    .kds-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        background: #0f172a;
+        border-top: 1px solid #1e293b;
+        padding: 0.4rem;
+        font-size: 0.75rem;
+        color: #475569;
+        flex-shrink: 0;
+    }
+    .sep { color: #334155; }
+</style>
+
+@code {
+    [Parameter] public int BranchId { get; set; }
+    [Parameter] public int ScreenId { get; set; }
+
+    private List<KdsOrderTicketDto> _tickets = new();
+    private int _selectedIndex = 0;
+    private int? _lastBumpedOrderId = null;
+    private bool _isLoading = true;
+    private DateTime _currentTime = DateTime.Now;
+    private System.Timers.Timer? _refreshTimer;
+    private System.Timers.Timer? _clockTimer;
+    private ElementReference _containerRef;
+    private int _prevTicketCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTickets();
+
+        _refreshTimer = new System.Timers.Timer(10_000);
+        _refreshTimer.Elapsed += async (_, _) => await InvokeAsync(RefreshTickets);
+        _refreshTimer.AutoReset = true;
+        _refreshTimer.Start();
+
+        _clockTimer = new System.Timers.Timer(1_000);
+        _clockTimer.Elapsed += async (_, _) =>
+        {
+            _currentTime = DateTime.Now;
+            await InvokeAsync(StateHasChanged);
+        };
+        _clockTimer.AutoReset = true;
+        _clockTimer.Start();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try { await _containerRef.FocusAsync(); } catch { }
+        }
+    }
+
+    private async Task LoadTickets()
+    {
+        _isLoading = true;
+        var result = await KdsService.GetActiveKitchenOrders(BranchId, ScreenId);
+        _prevTicketCount = result.Count;
+        _tickets = result;
+        _isLoading = false;
+        if (_selectedIndex >= _tickets.Count)
+            _selectedIndex = Math.Max(0, _tickets.Count - 1);
+    }
+
+    private async Task RefreshTickets()
+    {
+        var result = await KdsService.GetActiveKitchenOrders(BranchId, ScreenId);
+        bool hasNew = result.Count > _prevTicketCount;
+        _prevTicketCount = result.Count;
+        _tickets = result;
+        if (_selectedIndex >= _tickets.Count)
+            _selectedIndex = Math.Max(0, _tickets.Count - 1);
+        if (hasNew)
+        {
+            try { await JS.InvokeVoidAsync("kdsAudio.playNewOrder"); } catch { }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task BumpOrder(int orderId)
+    {
+        await KdsService.BumpKitchenOrder(orderId);
+        _lastBumpedOrderId = orderId;
+        await LoadTickets();
+        StateHasChanged();
+    }
+
+    private async Task RecallLast()
+    {
+        if (_lastBumpedOrderId.HasValue)
+        {
+            await KdsService.RecallKitchenOrder(_lastBumpedOrderId.Value);
+            _lastBumpedOrderId = null;
+            await LoadTickets();
+            StateHasChanged();
+        }
+    }
+
+    private void SelectAndFocus(int idx)
+    {
+        _selectedIndex = idx;
+        StateHasChanged();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowRight":
+            case "ArrowUp":
+                _selectedIndex = Math.Max(0, _selectedIndex - 1);
+                StateHasChanged();
+                break;
+            case "ArrowLeft":
+            case "ArrowDown":
+                _selectedIndex = Math.Min(_tickets.Count - 1, _selectedIndex + 1);
+                StateHasChanged();
+                break;
+            case "Enter":
+            case " ":
+                if (_tickets.Count > 0 && _selectedIndex < _tickets.Count)
+                    await BumpOrder(_tickets[_selectedIndex].OrderId);
+                break;
+            case "r":
+            case "R":
+                await RecallLast();
+                break;
+            case "Home":
+                _selectedIndex = 0;
+                StateHasChanged();
+                break;
+            case "End":
+                _selectedIndex = Math.Max(0, _tickets.Count - 1);
+                StateHasChanged();
+                break;
+            default:
+                // Number key direct navigation (1-9)
+                if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
+                {
+                    int target = int.Parse(e.Key) - 1;
+                    if (target >= 0 && target < _tickets.Count)
+                    {
+                        _selectedIndex = target;
+                        StateHasChanged();
+                    }
+                }
+                break;
+        }
+    }
+
+    private string FormatElapsed(double minutes)
+    {
+        int m = (int)minutes;
+        int s = (int)((minutes - m) * 60);
+        return $"{m:D2}:{s:D2}";
+    }
+
+    private void GoBack() => NavManager.NavigateTo("/");
+
+    public void Dispose()
+    {
+        _refreshTimer?.Stop();
+        _refreshTimer?.Dispose();
+        _clockTimer?.Stop();
+        _clockTimer?.Dispose();
+    }
+}

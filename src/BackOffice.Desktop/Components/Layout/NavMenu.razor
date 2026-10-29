@@ -66,6 +66,7 @@
                     @if (_canManagePrinters)
                     {
                         <MudMenuItem Href="/settings/printersettings"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Print" Size="Size.Small" /> @LocalizerService["PrintSettings"]</div></MudMenuItem>
+                        <MudMenuItem Href="/settings/kds-screens"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Tv" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "شاشات المطبخ والبيكاب (KDS)" : "Kitchen & Pickup Screens")</div></MudMenuItem>
                     }
                     @if (_canManageSystem)
                     {
@@ -75,14 +76,14 @@
                                     <div class="menu-item-content d-flex align-center gap-2">
                                         <span class="d-flex align-center gap-3">
                                             <MudIcon Icon="@Icons.Material.Rounded.SettingsApplications" Size="Size.Small" /> 
-                                            @(LocalizerService.GetCurrentLanguage() == "ar" ? "إعدادات النظام" : "System Settings")
+                                            @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù…" : "System Settings")
                                         </span>
                                         <MudIcon Icon="@(LocalizerService.GetCurrentLanguage() == "ar" ? Icons.Material.Rounded.ChevronLeft : Icons.Material.Rounded.ChevronRight)" Size="Size.Small" Class="text-muted" />
                                     </div>
                                 </MudMenuItem>
                             </ActivatorContent>
                             <ChildContent>
-                                <MudMenuItem Href="/settings/features"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.FeaturedPlayList" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "خصائص ومميزات السيستم" : "System Feature Settings")</div></MudMenuItem>
+                                <MudMenuItem Href="/settings/features"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.FeaturedPlayList" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø®ØµØ§Ø¦Øµ ÙˆÙ…Ù…ÙŠØ²Ø§Øª Ø§Ù„Ø³ÙŠØ³ØªÙ…" : "System Feature Settings")</div></MudMenuItem>
                             </ChildContent>
                         </MudMenu>
                     }
@@ -119,7 +120,7 @@
                                 </MudMenuItem>
                             </ActivatorContent>
                             <ChildContent>
-                                <MudMenuItem OnClick='() => SetLanguage("ar")'><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Language" Size="Size.Small" /> العربية</div></MudMenuItem>
+                                <MudMenuItem OnClick='() => SetLanguage("ar")'><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Language" Size="Size.Small" /> Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©</div></MudMenuItem>
                                 <MudMenuItem OnClick='() => SetLanguage("en")'><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Language" Size="Size.Small" /> English</div></MudMenuItem>
                             </ChildContent>
                         </MudMenu>
@@ -193,7 +194,7 @@
                         </ActivatorContent>
                         <ChildContent>
                             @if (_canManageItems) {
-                                <MudMenuItem Href="/basicdata/classifications"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Class" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "أقسام الفئات" : "Category Classifications")</div></MudMenuItem>
+                                <MudMenuItem Href="/basicdata/classifications"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Class" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø£Ù‚Ø³Ø§Ù… Ø§Ù„ÙØ¦Ø§Øª" : "Category Classifications")</div></MudMenuItem>
                                 <MudMenuItem Href="/basicdata/categories"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Category" Size="Size.Small" /> @LocalizerService["Categories"]</div></MudMenuItem>
                                 <MudMenuItem Href="/basicdata/items"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.ShoppingBag" Size="Size.Small" /> @LocalizerService["SalesItems"]</div></MudMenuItem>
                                 <MudMenuItem Href="/basicdata/attributes"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.ListAlt" Size="Size.Small" /> @LocalizerService["AttributesManagement"]</div></MudMenuItem>
@@ -203,24 +204,24 @@
                     </MudMenu>
                     <MudDivider Class="my-2" />
                     @if (_canManageItems) {
-                        <MudMenuItem Href="/basicdata/item/printerassignment"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Print" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "إعداد طباعة الأصناف" : "Item Printer Assignment")</div></MudMenuItem>
-                        <MudMenuItem Href="/basicdata/category/printerassignment"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Print" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "إعداد طباعة الفئات" : "Category Printer Assignment")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/item/printerassignment"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Print" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ø¹Ø¯Ø§Ø¯ Ø·Ø¨Ø§Ø¹Ø© Ø§Ù„Ø£ØµÙ†Ø§Ù" : "Item Printer Assignment")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/category/printerassignment"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Print" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ø¹Ø¯Ø§Ø¯ Ø·Ø¨Ø§Ø¹Ø© Ø§Ù„ÙØ¦Ø§Øª" : "Category Printer Assignment")</div></MudMenuItem>
                     }
                     <MudDivider Class="my-2" />
                     @if (_canManageDelivery) {
-                        <MudMenuItem Href="/basicdata/zones"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Map" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "مناطق التوصيل" : "Delivery Zones")</div></MudMenuItem>
-                        <MudMenuItem Href="/basicdata/complaints"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.SupportAgent" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "شكاوى الكول سنتر" : "Call Center Complaints")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/zones"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Map" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ù…Ù†Ø§Ø·Ù‚ Ø§Ù„ØªÙˆØµÙŠÙ„" : "Delivery Zones")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/complaints"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.SupportAgent" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø´ÙƒØ§ÙˆÙ‰ Ø§Ù„ÙƒÙˆÙ„ Ø³Ù†ØªØ±" : "Call Center Complaints")</div></MudMenuItem>
                     }
                     <MudDivider Class="my-2" />
                     @if (_canManageTables) {
-                        <MudMenuItem Href="/basicdata/tablegroups"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Layers" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "مجموعات الطاولات" : "Table Groups")</div></MudMenuItem>
-                        <MudMenuItem Href="/basicdata/tables"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.TableBar" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "الطاولات" : "Tables")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/tablegroups"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Layers" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø·Ø§ÙˆÙ„Ø§Øª" : "Table Groups")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/tables"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.TableBar" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø§Ù„Ø·Ø§ÙˆÙ„Ø§Øª" : "Tables")</div></MudMenuItem>
                     }
                     <MudDivider Class="my-2" />
                     
                     @if (_canManagePaymentMethods)
                     {
-                        <MudMenuItem Href="/basicdata/paymentmethods"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.AccountBalanceWallet" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "طرق الدفع" : "Payment Methods")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/paymentmethods"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.AccountBalanceWallet" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø·Ø±Ù‚ Ø§Ù„Ø¯ÙØ¹" : "Payment Methods")</div></MudMenuItem>
                     }
                     <MudMenuItem><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.MoreHoriz" Size="Size.Small" /> @LocalizerService["Miscellaneous"]</div></MudMenuItem>
                 </ChildContent>
@@ -233,29 +234,29 @@
                 <ActivatorContent>
                     <div class="tab-item @(ActiveTab == "inventory" ? "active" : "")">
                         <MudIcon Icon="@Icons.Material.Rounded.Warehouse" Size="Size.Small" Class="tab-icon" />
-                        <span class="tab-text">@(LocalizerService.GetCurrentLanguage() == "ar" ? "المخازن" : "Inventory")</span>
+                        <span class="tab-text">@(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø§Ù„Ù…Ø®Ø§Ø²Ù†" : "Inventory")</span>
                         <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Class="dropdown-arrow" />
                     </div>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem Href="/basicdata/inventory"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Inventory" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "رصيد المخزن العام" : "General Stock")</div></MudMenuItem>
+                    <MudMenuItem Href="/basicdata/inventory"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Inventory" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø±ØµÙŠØ¯ Ø§Ù„Ù…Ø®Ø²Ù† Ø§Ù„Ø¹Ø§Ù…" : "General Stock")</div></MudMenuItem>
                     <MudDivider Class="my-2" />
                     @if (_canManageRawMaterials)
                     {
-                        <MudMenuItem Href="/inventory/raw-materials"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Kitchen" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "إدارة المواد الخام" : "Raw Materials")</div></MudMenuItem>
+                        <MudMenuItem Href="/inventory/raw-materials"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Kitchen" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„Ø®Ø§Ù…" : "Raw Materials")</div></MudMenuItem>
                     }
                     @if (_canManageSemiFinished)
                     {
-                        <MudMenuItem Href="/inventory/semi-finished"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Science" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "أصناف نصف مصنعة" : "Semi-Finished Items")</div></MudMenuItem>
+                        <MudMenuItem Href="/inventory/semi-finished"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Science" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø£ØµÙ†Ø§Ù Ù†ØµÙ Ù…ØµÙ†Ø¹Ø©" : "Semi-Finished Items")</div></MudMenuItem>
                     }
                     @if (_canManageRecipes)
                     {
-                        <MudMenuItem Href="/inventory/recipes"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.MenuBook" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "إدارة الريسيبي (BOM)" : "Recipe Management")</div></MudMenuItem>
+                        <MudMenuItem Href="/inventory/recipes"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.MenuBook" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø±ÙŠØ³ÙŠØ¨ÙŠ (BOM)" : "Recipe Management")</div></MudMenuItem>
                     }
                     <MudDivider Class="my-2" />
                     @if (_canManageUnits)
                     {
-                        <MudMenuItem Href="/basicdata/units"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Straighten" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "تعريف الوحدات" : "Units Definition")</div></MudMenuItem>
+                        <MudMenuItem Href="/basicdata/units"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Straighten" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "ØªØ¹Ø±ÙŠÙ Ø§Ù„ÙˆØ­Ø¯Ø§Øª" : "Units Definition")</div></MudMenuItem>
                     }
                 </ChildContent>
             </MudMenu>
@@ -273,11 +274,11 @@
                 </ActivatorContent>
                 <ChildContent>
                     <MudMenuItem Href="/transactions/accounts"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.AccountBalance" Size="Size.Small" /> @LocalizerService["Accounts"]</div></MudMenuItem>
-                    <MudMenuItem Href="/transactions/expenses"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Payments" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "المصروفات والمدفوعات" : "Expenses & Payouts")</div></MudMenuItem>
+                    <MudMenuItem Href="/transactions/expenses"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.Payments" Size="Size.Small" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø§Ù„Ù…ØµØ±ÙˆÙØ§Øª ÙˆØ§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª" : "Expenses & Payouts")</div></MudMenuItem>
                     <MudMenuItem Href="/transactions/summary"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.BarChart" Size="Size.Small" /> @LocalizerService["Summary"]</div></MudMenuItem>
                     <MudMenuItem Href="/transactions/all-orders"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.ListAlt" Size="Size.Small" /> @LocalizerService["AllOrders"]</div></MudMenuItem>
                     <MudDivider Class="my-2" />
-                    <MudMenuItem OnClick="OpenEndOfDay"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.EventBusy" Size="Size.Small" Color="Color.Error" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "إنهاء يوم عمل مبيعات" : "Sales End Of Day")</div></MudMenuItem>
+                    <MudMenuItem OnClick="OpenEndOfDay"><div class="menu-item-content"><MudIcon Icon="@Icons.Material.Rounded.EventBusy" Size="Size.Small" Color="Color.Error" /> @(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ù†Ù‡Ø§Ø¡ ÙŠÙˆÙ… Ø¹Ù…Ù„ Ù…Ø¨ÙŠØ¹Ø§Øª" : "Sales End Of Day")</div></MudMenuItem>
                 </ChildContent>
             </MudMenu>
         }
@@ -314,7 +315,7 @@
 
         <MudMenu AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" ListClass="pa-2" PopoverClass="settings-menu-popover">
             <ActivatorContent>
-                <div class="user-pill" style="cursor: pointer;" title="@(LocalizerService.GetCurrentLanguage() == "ar" ? "خيارات الحساب" : "Account Options")">
+                <div class="user-pill" style="cursor: pointer;" title="@(LocalizerService.GetCurrentLanguage() == "ar" ? "Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø­Ø³Ø§Ø¨" : "Account Options")">
                     <div class="user-avatar">@_userInitials</div>
                     <span class="user-name">@_userName</span>
                     <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Class="dropdown-arrow" Style="font-size: 1.1rem; opacity: 0.7;" />
@@ -326,7 +327,7 @@
                     <MudMenuItem OnClick="OpenChangePasswordDialog">
                         <div class="menu-item-content d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Rounded.VpnKey" Size="Size.Small" Color="Color.Success" />
-                            @(LocalizerService.GetCurrentLanguage() == "ar" ? "تغيير كلمة المرور" : "Change Password")
+                            @(LocalizerService.GetCurrentLanguage() == "ar" ? "ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" : "Change Password")
                         </div>
                     </MudMenuItem>
                     <MudDivider Class="my-1" />
@@ -334,7 +335,7 @@
                 <MudMenuItem OnClick="Logout">
                     <div class="menu-item-content d-flex align-center gap-2">
                         <MudIcon Icon="@Icons.Material.Rounded.Logout" Size="Size.Small" Color="Color.Error" />
-                        @(LocalizerService.GetCurrentLanguage() == "ar" ? "تسجيل الخروج" : "Logout")
+                        @(LocalizerService.GetCurrentLanguage() == "ar" ? "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬" : "Logout")
                     </div>
                 </MudMenuItem>
             </ChildContent>
@@ -387,7 +388,7 @@
         var user = authState.User;
         if (user.Identity is { IsAuthenticated: true })
         {
-            _userName = user.Identity.Name ?? user.FindFirst("unique_name")?.Value ?? user.FindFirst("name")?.Value ?? (LocalizerService.GetCurrentLanguage() == "ar" ? "المدير العام" : "General Manager");
+            _userName = user.Identity.Name ?? user.FindFirst("unique_name")?.Value ?? user.FindFirst("name")?.Value ?? (LocalizerService.GetCurrentLanguage() == "ar" ? "Ø§Ù„Ù…Ø¯ÙŠØ± Ø§Ù„Ø¹Ø§Ù…" : "General Manager");
             
             try 
             {
@@ -535,7 +536,7 @@
     {
         var options = new MudBlazor.DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await DialogService.ShowAsync<SalesEndOfDayDialog>(
-            LocalizerService.GetCurrentLanguage() == "ar" ? "إنهاء يوم العمل" : "End Of Day", 
+            LocalizerService.GetCurrentLanguage() == "ar" ? "Ø¥Ù†Ù‡Ø§Ø¡ ÙŠÙˆÙ… Ø§Ù„Ø¹Ù…Ù„" : "End Of Day", 
             options);
         
         var result = await dialog.Result;
@@ -550,7 +551,7 @@
     {
         var options = new MudBlazor.DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, NoHeader = false };
         await DialogService.ShowAsync<LicenseActivationDialog>(
-            LocalizerService.GetCurrentLanguage() == "ar" ? "تنشيط الجهاز" : "Activate Device", 
+            LocalizerService.GetCurrentLanguage() == "ar" ? "ØªÙ†Ø´ÙŠØ· Ø§Ù„Ø¬Ù‡Ø§Ø²" : "Activate Device", 
             options);
     }
 
@@ -593,7 +594,7 @@
         };
         var options = new MudBlazor.DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         await DialogService.ShowAsync<BackOffice.Desktop.Components.Pages.Users.ChangeOwnPasswordDialog>(
-            isArabic ? "تغيير كلمة المرور" : "Change Password",
+            isArabic ? "ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" : "Change Password",
             parameters,
             options
         );

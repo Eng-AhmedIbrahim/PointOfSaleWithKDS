@@ -80,4 +80,7 @@ public class AppDbContext : DbContext
     public DbSet<POS.Core.Entities.StaffMealEntity.StaffMealGroup> StaffMealGroups { get; set; }
     public DbSet<POS.Core.Entities.StaffMealEntity.StaffMealGroupItem> StaffMealGroupItems { get; set; }
     public DbSet<POS.Core.Entities.StaffMealEntity.StaffMealUsage> StaffMealUsages { get; set; }
+
+    // KDS & Pickup Screens
+    public DbSet<POS.Core.Entities.Kitchen.KdsScreen> KdsScreens { get; set; }
 }

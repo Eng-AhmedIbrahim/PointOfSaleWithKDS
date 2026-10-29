@@ -1,0 +1,177 @@
+@page "/"
+@inject IKdsErpService KdsService
+@inject NavigationManager NavManager
+
+<div class="selector-bg">
+    <div class="selector-header">
+        <div class="selector-logo">🍳 KDS</div>
+        <div class="selector-title">نظام شاشات المطبخ والاستلام</div>
+        <div class="selector-subtitle">Kitchen &amp; Pickup Display System</div>
+    </div>
+
+    <div class="selector-form">
+        <div class="form-group">
+            <label class="form-label">رقم الفرع</label>
+            <input type="number" class="form-input" @bind="_branchId" placeholder="1" min="1" />
+        </div>
+    </div>
+
+    <div class="selector-cards">
+        <!-- Kitchen Screen Card -->
+        <div class="screen-card kitchen-card @(_selectedType == "Kitchen" ? "card-selected" : "")"
+             @onclick='() => SelectScreenType("Kitchen")'>
+            <div class="card-icon">👨‍🍳</div>
+            <div class="card-title">شاشة المطبخ</div>
+            <div class="card-desc">Kitchen Display Screen</div>
+            <div class="card-features">
+                <span>⌨️ تحكم بالكيبورد</span>
+                <span>⏱️ مؤقت الطلبات</span>
+                <span>🔔 تنبيه صوتي</span>
+            </div>
+            @if (_selectedType == "Kitchen")
+            {
+                <div class="form-group" style="margin-top:1rem;" @onclick:stopPropagation="true">
+                    <label class="form-label" style="font-size:0.85rem;">رقم الشاشة (Screen ID)</label>
+                    <input type="number" class="form-input" @bind="_screenId" placeholder="1" min="1" />
+                </div>
+            }
+        </div>
+
+        <!-- Pickup Screen Card -->
+        <div class="screen-card pickup-card @(_selectedType == "Pickup" ? "card-selected" : "")"
+             @onclick='() => SelectScreenType("Pickup")'>
+            <div class="card-icon">📋</div>
+            <div class="card-title">شاشة الاستلام</div>
+            <div class="card-desc">Pickup Display Screen</div>
+            <div class="card-features">
+                <span>⌨️ تحكم بالكيبورد</span>
+                <span>✅ قيد التحضير / جاهز</span>
+                <span>🔔 تنبيه صوتي</span>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMsg))
+    {
+        <div class="error-msg">⚠️ @_errorMsg</div>
+    }
+
+    <div class="selector-btn-wrapper">
+        <button class="start-btn" @onclick="StartScreen">
+            ▶ ابدأ الشاشة
+        </button>
+    </div>
+
+    <div class="selector-footer">
+        <span>استخدم الأسهم + Enter للتحكم بالكيبورد</span>
+    </div>
+</div>
+
+<style>
+    .selector-bg {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0b1120 0%, #0f172a 50%, #0b1120 100%);
+        padding: 2rem 1rem;
+        color: #e2e8f0;
+        direction: rtl;
+    }
+    .selector-header { text-align: center; margin-bottom: 2rem; }
+    .selector-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+    .selector-title { font-size: 1.8rem; font-weight: 800; color: #10b981; }
+    .selector-subtitle { font-size: 1rem; color: #64748b; margin-top: 0.25rem; }
+    .selector-form { margin-bottom: 1.5rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-label { font-size: 0.9rem; color: #94a3b8; font-weight: 600; }
+    .form-input {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        font-family: 'Cairo', sans-serif;
+        width: 180px;
+        outline: none;
+        text-align: center;
+        transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: #10b981; }
+    .selector-cards { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.5rem; }
+    .screen-card {
+        background: #1e293b;
+        border: 2px solid #334155;
+        border-radius: 16px;
+        padding: 2rem;
+        width: 240px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.25s;
+        user-select: none;
+    }
+    .screen-card:hover { border-color: #64748b; transform: translateY(-3px); }
+    .card-selected { border-color: #10b981 !important; box-shadow: 0 0 30px rgba(16,185,129,0.3); }
+    .pickup-card.card-selected { border-color: #3b82f6 !important; box-shadow: 0 0 30px rgba(59,130,246,0.3); }
+    .card-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .card-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .kitchen-card .card-title { color: #10b981; }
+    .pickup-card .card-title { color: #3b82f6; }
+    .card-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; }
+    .card-features { display: flex; flex-direction: column; gap: 0.3rem; }
+    .card-features span { font-size: 0.8rem; color: #94a3b8; }
+    .error-msg { color: #ef4444; font-size: 0.9rem; margin-bottom: 1rem; background: rgba(239,68,68,0.1); padding: 0.5rem 1rem; border-radius: 8px; }
+    .selector-btn-wrapper { margin-top: 0.5rem; }
+    .start-btn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.9rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-family: 'Cairo', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        letter-spacing: 0.05em;
+    }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16,185,129,0.4); }
+    .start-btn:active { transform: translateY(0); }
+    .selector-footer { margin-top: 2rem; color: #475569; font-size: 0.8rem; }
+</style>
+
+@code {
+    private int _branchId = 1;
+    private int _screenId = 1;
+    private string _selectedType = "Kitchen";
+    private string _errorMsg = "";
+
+    private void SelectScreenType(string type)
+    {
+        _selectedType = type;
+    }
+
+    private void StartScreen()
+    {
+        _errorMsg = "";
+        if (_branchId <= 0)
+        {
+            _errorMsg = "يرجى إدخال رقم فرع صحيح";
+            return;
+        }
+        if (_selectedType == "Kitchen")
+        {
+            if (_screenId <= 0)
+            {
+                _errorMsg = "يرجى إدخال رقم الشاشة";
+                return;
+            }
+            NavManager.NavigateTo($"/kitchen/{_branchId}/{_screenId}");
+        }
+        else
+        {
+            NavManager.NavigateTo($"/pickup/{_branchId}");
+        }
+    }
+}

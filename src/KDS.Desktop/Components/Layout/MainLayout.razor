@@ -1,0 +1,40 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_kdsTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div style="width:100vw; height:100vh; background:#0b1120; overflow:hidden; direction:rtl;">
+    @Body
+</div>
+
+@code {
+    private MudTheme _kdsTheme = new MudTheme
+    {
+        PaletteLight = new PaletteLight
+        {
+            Background = "#0b1120",
+            Surface = "#1e293b",
+            DrawerBackground = "#0f172a",
+            Primary = "#10b981",
+            Secondary = "#3b82f6",
+            TextPrimary = "#e2e8f0",
+            TextSecondary = "#94a3b8",
+        },
+        PaletteDark = new PaletteDark
+        {
+            Background = "#0b1120",
+            Surface = "#1e293b",
+            DrawerBackground = "#0f172a",
+            Primary = "#10b981",
+            Secondary = "#3b82f6",
+            TextPrimary = "#e2e8f0",
+            TextSecondary = "#94a3b8",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = new[] { "Cairo", "Outfit", "sans-serif" } }
+        }
+    };
+}

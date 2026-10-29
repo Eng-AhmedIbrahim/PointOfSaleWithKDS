@@ -80,6 +80,24 @@ try
     await dbContext.Database.MigrateAsync();
     await identityDbContext.Database.MigrateAsync();
 
+    // Hotfix: Ensure KdsScreens table exists
+    await dbContext.Database.ExecuteSqlRawAsync(@"
+        IF OBJECT_ID('KdsScreens') IS NULL
+        BEGIN
+            CREATE TABLE KdsScreens (
+                [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                [ScreenName] NVARCHAR(200) NOT NULL,
+                [ScreenType] NVARCHAR(50) NOT NULL DEFAULT 'Kitchen',
+                [NumberFilter] NVARCHAR(50) NOT NULL DEFAULT 'All',
+                [SelectedCategoryIds] NVARCHAR(MAX) NULL,
+                [SelectedItemIds] NVARCHAR(MAX) NULL,
+                [IsActive] BIT NOT NULL DEFAULT 1,
+                [BranchId] INT NOT NULL DEFAULT 0,
+                [DeviceName] NVARCHAR(200) NULL
+            );
+        END
+    ");
+
     // Hotfix: Ensure Permissions table schema is correct if migrations were out of sync
     await identityDbContext.Database.ExecuteSqlRawAsync(@"
         -- 1. Rename NameEn to ScreenEnglishName if it exists and target doesn't
@@ -113,21 +131,21 @@ try
         -- Ensure new void & edit permissions are in Permissions table
         IF NOT EXISTS (SELECT 1 FROM Permissions WHERE Name = 'CanAccessDeliveryVoidBtn')
             INSERT INTO Permissions (Name, PoliceArabicName, PoliceEnglishNameEn, ScreenArabicName, ScreenEnglishName, IsBackOffice)
-            VALUES ('CanAccessDeliveryVoidBtn', N'إلغاء طلب دليفري', 'Void Delivery Order', N'شاشة التوصيل', 'Delivery Screen', 0);
+            VALUES ('CanAccessDeliveryVoidBtn', N'Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨ Ø¯Ù„ÙŠÙØ±ÙŠ', 'Void Delivery Order', N'Ø´Ø§Ø´Ø© Ø§Ù„ØªÙˆØµÙŠÙ„', 'Delivery Screen', 0);
         ELSE
-            UPDATE Permissions SET PoliceArabicName = N'إلغاء طلب دليفري', ScreenArabicName = N'شاشة التوصيل' WHERE Name = 'CanAccessDeliveryVoidBtn';
+            UPDATE Permissions SET PoliceArabicName = N'Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨ Ø¯Ù„ÙŠÙØ±ÙŠ', ScreenArabicName = N'Ø´Ø§Ø´Ø© Ø§Ù„ØªÙˆØµÙŠÙ„' WHERE Name = 'CanAccessDeliveryVoidBtn';
 
         IF NOT EXISTS (SELECT 1 FROM Permissions WHERE Name = 'CanAccessDeliveryEditBtn')
             INSERT INTO Permissions (Name, PoliceArabicName, PoliceEnglishNameEn, ScreenArabicName, ScreenEnglishName, IsBackOffice)
-            VALUES ('CanAccessDeliveryEditBtn', N'تعديل طلب دليفري', 'Edit Delivery Order', N'شاشة التوصيل', 'Delivery Screen', 0);
+            VALUES ('CanAccessDeliveryEditBtn', N'ØªØ¹Ø¯ÙŠÙ„ Ø·Ù„Ø¨ Ø¯Ù„ÙŠÙØ±ÙŠ', 'Edit Delivery Order', N'Ø´Ø§Ø´Ø© Ø§Ù„ØªÙˆØµÙŠÙ„', 'Delivery Screen', 0);
         ELSE
-            UPDATE Permissions SET PoliceArabicName = N'تعديل طلب دليفري', ScreenArabicName = N'شاشة التوصيل' WHERE Name = 'CanAccessDeliveryEditBtn';
+            UPDATE Permissions SET PoliceArabicName = N'ØªØ¹Ø¯ÙŠÙ„ Ø·Ù„Ø¨ Ø¯Ù„ÙŠÙØ±ÙŠ', ScreenArabicName = N'Ø´Ø§Ø´Ø© Ø§Ù„ØªÙˆØµÙŠÙ„' WHERE Name = 'CanAccessDeliveryEditBtn';
 
         IF NOT EXISTS (SELECT 1 FROM Permissions WHERE Name = 'CanVoidBranchDeliveryOrder')
             INSERT INTO Permissions (Name, PoliceArabicName, PoliceEnglishNameEn, ScreenArabicName, ScreenEnglishName, IsBackOffice)
-            VALUES ('CanVoidBranchDeliveryOrder', N'إلغاء طلب الفروع', 'Void Branch Order', N'أوردرات الفروع', 'Branch Orders', 0);
+            VALUES ('CanVoidBranchDeliveryOrder', N'Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨ Ø§Ù„ÙØ±ÙˆØ¹', 'Void Branch Order', N'Ø£ÙˆØ±Ø¯Ø±Ø§Øª Ø§Ù„ÙØ±ÙˆØ¹', 'Branch Orders', 0);
         ELSE
-            UPDATE Permissions SET PoliceArabicName = N'إلغاء طلب الفروع', ScreenArabicName = N'أوردرات الفروع' WHERE Name = 'CanVoidBranchDeliveryOrder';
+            UPDATE Permissions SET PoliceArabicName = N'Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨ Ø§Ù„ÙØ±ÙˆØ¹', ScreenArabicName = N'Ø£ÙˆØ±Ø¯Ø±Ø§Øª Ø§Ù„ÙØ±ÙˆØ¹' WHERE Name = 'CanVoidBranchDeliveryOrder';
     ");
 
     // Hotfix: Remove IDENTITY from Items, Categories, Attributes, and AttributeItems (Development Only - Tables are empty)

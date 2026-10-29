@@ -1,0 +1,319 @@
+@page "/settings/kds-screens"
+@using POS.Contract.Dtos.KitchenDtos
+@using BlazorBase.ERPFrontServices.KdsServices
+@using POS.Core.Services.Contract.PosFeatureServices
+@using POS.Contract.Dtos.OrderDto
+@inject IKdsErpService KdsService
+@inject IPosFeatureSettingsService FeatureSettingsService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject BlazorBase.Services.LocalizationService Localizer
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 mb-10" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-4">
+        <div>
+            <div class="d-flex align-center gap-3">
+                <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 12px; border-radius: 14px; color: white;">
+                    <MudIcon Icon="@Icons.Material.Rounded.Tv" Size="Size.Large" />
+                </div>
+                <div>
+                    <MudText Typo="Typo.h5" Style="font-weight: 900; color: #0f172a;">
+                        إدارة شاشات المطبخ والاستلام (KDS & Pickup)
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="text-muted">
+                        إعداد وتخصيص شاشات المطبخ (فردي / زوجي / أقسام محددة) وشاشات نداء العملاء
+                    </MudText>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-center gap-3">
+            <MudButton Variant="MudBlazor.Variant.Filled" 
+                       Color="Color.Primary" 
+                       StartIcon="@Icons.Material.Rounded.Add"
+                       OnClick="OpenAddScreenDialog"
+                       Disabled="@(!_isKdsEnabled)"
+                       Style="font-weight: 700; border-radius: 12px; padding: 8px 20px;">
+                إضافة شاشة جديدة
+            </MudButton>
+        </div>
+    </div>
+
+    <!-- Master Feature Toggle Card -->
+    <MudCard Elevation="2" Class="mb-6" Style="border-radius: 16px; border: 1.5px solid #e2e8f0; background: #ffffff;">
+        <MudCardContent Class="pa-4">
+            <div class="d-flex justify-space-between align-center">
+                <div class="d-flex align-center gap-3">
+                    <MudIcon Icon="@Icons.Material.Rounded.PowerSettingsNew" 
+                             Color="@(_isKdsEnabled ? Color.Success : Color.Default)" 
+                             Size="Size.Medium" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 800;">
+                            تفعيل نظام شاشات المطبخ والبيكاب (Master Switch)
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            عند التفعيل يعمل نظام الشاشات بالتوازي مع الطابعات دون أي تعارض
+                        </MudText>
+                    </div>
+                </div>
+                <MudSwitch T="bool" 
+                           Value="_isKdsEnabled" 
+                           ValueChanged="OnMasterToggleChanged" 
+                           Color="Color.Success" 
+                           Size="Size.Large" />
+            </div>
+        </MudCardContent>
+    </MudCard>
+
+    @if (!_isKdsEnabled)
+    {
+        <MudAlert Severity="Severity.Info" Variant="MudBlazor.Variant.Outlined" Class="mb-6" Style="border-radius: 14px;">
+            نظام شاشات المطبخ معطل حالياً. قم بتشغيل المفتاح أعلاه لتفعيل شاشات المطبخ والاستلام.
+        </MudAlert>
+    }
+
+    <!-- Screens List -->
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-6" />
+    }
+    else if (!_screens.Any())
+    {
+        <MudPaper Class="pa-10 text-center" Style="border-radius: 16px; border: 2px dashed #cbd5e1; background: #f8fafc;">
+            <MudIcon Icon="@Icons.Material.Rounded.TvOff" Size="Size.Large" Color="Color.Default" Class="mb-3" />
+            <MudText Typo="Typo.h6" Style="font-weight: 700; color: #64748b;">لا توجد شاشات مضافة حتى الآن</MudText>
+            <MudText Typo="Typo.body2" Class="text-muted mb-4">
+                اضغط على "إضافة شاشة جديدة" لتعيين شاشة مطبخ أو شاشة تسليم
+            </MudText>
+            @if (_isKdsEnabled)
+            {
+                <MudButton Variant="MudBlazor.Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Rounded.Add" OnClick="OpenAddScreenDialog">
+                    إضافة أول شاشة
+                </MudButton>
+            }
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var screen in _screens)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="3" Style="border-radius: 16px; border: 1px solid #e2e8f0; height: 100%; display: flex; flex-direction: column;">
+                        <MudCardHeader Style="background: #f8fafc; border-bottom: 1px solid #eef2f6; padding: 12px 16px;">
+                            <CardHeaderContent>
+                                <div class="d-flex justify-space-between align-center">
+                                    <div class="d-flex align-center gap-2">
+                                        <MudIcon Icon="@(screen.ScreenType == "Kitchen" ? Icons.Material.Rounded.Restaurant : Icons.Material.Rounded.NotificationsActive)" 
+                                                 Color="@(screen.ScreenType == "Kitchen" ? Color.Success : Color.Info)" />
+                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 800;">@screen.ScreenName</MudText>
+                                    </div>
+                                    <MudChip T="string" Size="Size.Small" Color="@(screen.IsActive ? Color.Success : Color.Default)" Variant="MudBlazor.Variant.Text">
+                                        @(screen.IsActive ? "نشطة" : "معطلة")
+                                    </MudChip>
+                                </div>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+
+                        <MudCardContent Class="pa-4" Style="flex-grow: 1;">
+                            <MudStack Spacing="2">
+                                <!-- Type -->
+                                <div class="d-flex justify-space-between">
+                                    <span class="text-muted small">نوع الشاشة:</span>
+                                    <span class="font-bold small">
+                                        @(screen.ScreenType == "Kitchen" ? "شاشة مطبخ (KDS)" : "شاشة بيكاب / استلام")
+                                    </span>
+                                </div>
+
+                                <!-- Filter -->
+                                @if (screen.ScreenType == "Kitchen")
+                                {
+                                    <div class="d-flex justify-space-between">
+                                        <span class="text-muted small">توزيع الأرقام:</span>
+                                        <span class="font-bold small">
+                                            @if (screen.NumberFilter == "Odd")
+                                            {
+                                                <span class="text-info font-bold">فردي فقط (1, 3, 5...)</span>
+                                            }
+                                            else if (screen.NumberFilter == "Even")
+                                            {
+                                                <span class="text-success font-bold">زوجي فقط (2, 4, 6...)</span>
+                                            }
+                                            else
+                                            {
+                                                <span>جميع الأوردرات</span>
+                                            }
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex justify-space-between">
+                                        <span class="text-muted small">فلترة الأقسام:</span>
+                                        <span class="font-bold small">
+                                            @(string.IsNullOrWhiteSpace(screen.SelectedCategoryIds) ? "جميع الأقسام" : "أقسام محددة (" + screen.SelectedCategoryIds.Split(',').Length + ")")
+                                        </span>
+                                    </div>
+                                }
+                            </MudStack>
+                        </MudCardContent>
+
+                        <MudCardActions Class="pa-3 border-top d-flex justify-space-between" Style="background: #fafafa;">
+                            <MudButton Variant="MudBlazor.Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Rounded.Edit" OnClick="@(() => OpenEditScreenDialog(screen))">
+                                تعديل
+                            </MudButton>
+                            <MudButton Variant="MudBlazor.Variant.Text" Color="Color.Error" Size="Size.Small" StartIcon="@Icons.Material.Rounded.Delete" OnClick="@(() => DeleteScreen(screen))">
+                                حذف
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    private List<KdsScreenDto> _screens = new();
+    private bool _isLoading = true;
+    private bool _isKdsEnabled = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFeatureSetting();
+        await LoadScreens();
+    }
+
+    private async Task LoadFeatureSetting()
+    {
+        try
+        {
+            _isKdsEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableKdsSystem");
+        }
+        catch
+        {
+            _isKdsEnabled = true;
+        }
+    }
+
+    private async Task OnMasterToggleChanged(bool val)
+    {
+        _isKdsEnabled = val;
+        try
+        {
+            var settings = await FeatureSettingsService.GetSettingsByComputerNameAsync(Environment.MachineName);
+            var feat = settings.FirstOrDefault(s => s.FeatureName == "EnableKdsSystem");
+            if (feat != null)
+            {
+                feat.Value = val;
+                await FeatureSettingsService.UpdateSettingsAsync(Environment.MachineName, settings);
+            }
+            Snackbar.Add(val ? "تم تفعيل نظام شاشات المطبخ بنجاح" : "تم تعطيل نظام شاشات المطبخ", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("تعذر حفظ إعداد الخاصية", Severity.Error);
+        }
+    }
+
+    private async Task LoadScreens()
+    {
+        _isLoading = true;
+        try
+        {
+            _screens = await KdsService.GetScreens();
+        }
+        catch
+        {
+            _screens = new();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenAddScreenDialog()
+    {
+        var parameters = new DialogParameters<KdsScreenDialog>
+        {
+            { x => x.Screen, new KdsScreenDto { IsActive = true, ScreenType = "Kitchen", NumberFilter = "All" } }
+        };
+
+        var dialog = await DialogService.ShowAsync<KdsScreenDialog>("إضافة شاشة جديدة", parameters, new MudBlazor.DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is KdsScreenDto newScreenData)
+        {
+            var saved = await KdsService.SaveScreen(newScreenData);
+            if (saved != null)
+            {
+                Snackbar.Add("تمت إضافة الشاشة بنجاح", Severity.Success);
+                await LoadScreens();
+            }
+            else
+            {
+                Snackbar.Add("تعذر حفظ الشاشة", Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenEditScreenDialog(KdsScreenDto screen)
+    {
+        var clone = new KdsScreenDto
+        {
+            Id = screen.Id,
+            ScreenName = screen.ScreenName,
+            ScreenType = screen.ScreenType,
+            NumberFilter = screen.NumberFilter,
+            SelectedCategoryIds = screen.SelectedCategoryIds,
+            SelectedItemIds = screen.SelectedItemIds,
+            IsActive = screen.IsActive,
+            BranchId = screen.BranchId,
+            DeviceName = screen.DeviceName
+        };
+
+        var parameters = new DialogParameters<KdsScreenDialog>
+        {
+            { x => x.Screen, clone }
+        };
+
+        var dialog = await DialogService.ShowAsync<KdsScreenDialog>("تعديل الشاشة", parameters, new MudBlazor.DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is KdsScreenDto updatedScreenData)
+        {
+            var saved = await KdsService.SaveScreen(updatedScreenData);
+            if (saved != null)
+            {
+                Snackbar.Add("تم تعديل الشاشة بنجاح", Severity.Success);
+                await LoadScreens();
+            }
+            else
+            {
+                Snackbar.Add("تعذر حفظ التعديلات", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteScreen(KdsScreenDto screen)
+    {
+        bool? confirmed = await DialogService.ShowMessageBox(
+            "تأكيد الحذف",
+            $"هل أنت متأكد من حذف الشاشة '{screen.ScreenName}'؟",
+            yesText: "حذف", cancelText: "إلغاء");
+
+        if (confirmed == true)
+        {
+            var ok = await KdsService.DeleteScreen(screen.Id);
+            if (ok)
+            {
+                Snackbar.Add("تم حذف الشاشة", Severity.Info);
+                await LoadScreens();
+            }
+            else
+            {
+                Snackbar.Add("تعذر حذف الشاشة", Severity.Error);
+            }
+        }
+    }
+}

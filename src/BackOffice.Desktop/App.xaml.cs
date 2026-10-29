@@ -258,6 +258,7 @@ public partial class App : Application
         services.AddScoped<IRecipeFrontService, RecipeFrontService>();
         services.AddScoped<IUnitFrontService, UnitFrontService>();
         services.AddScoped<ILicenseService, LicenseService>();
+        services.AddScoped<BlazorBase.ERPFrontServices.KdsServices.IKdsErpService, BlazorBase.ERPFrontServices.KdsServices.KdsErpService>();
 
 
         // Call Center Hub Settings

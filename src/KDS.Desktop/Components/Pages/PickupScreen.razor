@@ -1,0 +1,394 @@
+@page "/pickup/{BranchId:int}"
+@inject IKdsErpService KdsService
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@implements IDisposable
+
+<div class="pickup-container" tabindex="0" @onkeydown="HandleKeyDown" @ref="_containerRef">
+    <!-- Header -->
+    <div class="pickup-header">
+        <div class="pickup-header-right">
+            <button class="btn-back" @onclick="GoBack">← رجوع</button>
+            <div class="pickup-title">
+                <span>📋</span>
+                شاشة الاستلام
+            </div>
+        </div>
+        <div class="pickup-header-center">
+            <div class="pickup-clock">@_currentTime.ToString("HH:mm:ss")</div>
+        </div>
+        <div class="pickup-header-left">
+            <div class="pickup-branch">فرع @BranchId</div>
+            <div class="keyboard-hint">Tab للتنقل | Enter للإنهاء</div>
+        </div>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="pickup-body">
+        <!-- Preparing Column -->
+        <div class="pickup-col col-preparing">
+            <div class="col-header preparing-header">
+                <span class="col-icon">🍳</span>
+                <span class="col-title">قيد التحضير</span>
+                <span class="col-count">@_preparing.Count</span>
+            </div>
+            <div class="col-cards">
+                @if (_preparing.Count == 0)
+                {
+                    <div class="empty-col">لا توجد طلبات قيد التحضير</div>
+                }
+                @foreach (var ticket in _preparing)
+                {
+                    <div class="pickup-card preparing-card">
+                        <div class="pickup-order-num">#@ticket.DailyOrderNumber</div>
+                        <div class="pickup-order-type">@ticket.OrderTypeName</div>
+                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                        {
+                            <div class="pickup-customer">👤 @ticket.CustomerName</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
+                        {
+                            <div class="pickup-phone">📞 @ticket.CustomerPhone</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.TableName))
+                        {
+                            <div class="pickup-table">🪑 @ticket.TableName</div>
+                        }
+                        <div class="pickup-elapsed">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
+                        <div class="pickup-items-count">@ticket.Items.Count صنف</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Ready Column -->
+        <div class="pickup-col col-ready">
+            <div class="col-header ready-header">
+                <span class="col-icon">✅</span>
+                <span class="col-title">جاهز للاستلام</span>
+                <span class="col-count">@_ready.Count</span>
+            </div>
+            <div class="col-cards">
+                @if (_ready.Count == 0)
+                {
+                    <div class="empty-col">لا توجد طلبات جاهزة</div>
+                }
+                @for (int i = 0; i < _ready.Count; i++)
+                {
+                    var ticket = _ready[i];
+                    var idx = i;
+                    <div class="pickup-card ready-card @(idx == _focusedReadyIndex ? "ready-focused" : "")"
+                         @onclick="() => SelectReady(idx)">
+                        <div class="ready-order-num">#@ticket.DailyOrderNumber</div>
+                        <div class="ready-order-type">@ticket.OrderTypeName</div>
+                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                        {
+                            <div class="pickup-customer">👤 @ticket.CustomerName</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
+                        {
+                            <div class="pickup-phone">📞 @ticket.CustomerPhone</div>
+                        }
+                        @if (!string.IsNullOrEmpty(ticket.TableName))
+                        {
+                            <div class="pickup-table">🪑 @ticket.TableName</div>
+                        }
+                        <div class="ready-action">
+                            @if (idx == _focusedReadyIndex)
+                            {
+                                <span class="focused-hint">[ Enter ] إنهاء الطلب</span>
+                            }
+                            else
+                            {
+                                <span class="unfocused-hint">Tab للتحديد</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Legend -->
+    <div class="pickup-legend">
+        <span>Tab = تنقل بين الجاهزين</span>
+        <span class="sep">|</span>
+        <span>Enter = تسليم الطلب وإنهاؤه</span>
+        <span class="sep">|</span>
+        <span class="auto-refresh-info">تحديث تلقائي كل 8 ثوانٍ</span>
+    </div>
+</div>
+
+<style>
+    .pickup-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: #0b1120;
+        color: #e2e8f0;
+        direction: rtl;
+        outline: none;
+        font-family: 'Cairo', 'Outfit', sans-serif;
+    }
+    .pickup-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #0f172a;
+        border-bottom: 2px solid #1e293b;
+        padding: 0.6rem 1.2rem;
+        min-height: 56px;
+        flex-shrink: 0;
+    }
+    .pickup-header-right, .pickup-header-center, .pickup-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .pickup-header-left { flex-direction: column; align-items: flex-end; gap: 0.1rem; }
+    .btn-back {
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #94a3b8;
+        border-radius: 8px;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+        font-size: 0.85rem;
+    }
+    .btn-back:hover { border-color: #3b82f6; color: #3b82f6; }
+    .pickup-title { font-size: 1.2rem; font-weight: 800; color: #3b82f6; display: flex; align-items: center; gap: 0.4rem; }
+    .pickup-clock { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; font-family: 'Outfit', monospace; }
+    .pickup-branch { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+    .keyboard-hint { font-size: 0.72rem; color: #475569; }
+
+    .pickup-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+
+    .pickup-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .col-preparing { border-left: 2px solid #1e293b; }
+
+    .col-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .preparing-header { background: rgba(59,130,246,0.1); color: #3b82f6; border-bottom: 2px solid rgba(59,130,246,0.3); }
+    .ready-header { background: rgba(16,185,129,0.1); color: #10b981; border-bottom: 2px solid rgba(16,185,129,0.3); }
+    .col-icon { font-size: 1.3rem; }
+    .col-count {
+        background: #334155;
+        border-radius: 12px;
+        padding: 0.1rem 0.6rem;
+        font-size: 0.85rem;
+        margin-right: auto;
+    }
+
+    .col-cards {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .empty-col {
+        text-align: center;
+        color: #475569;
+        padding: 3rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .pickup-card {
+        border-radius: 12px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+    }
+    .preparing-card {
+        background: rgba(59,130,246,0.08);
+        border: 2px solid rgba(59,130,246,0.25);
+    }
+    .preparing-card:hover { border-color: rgba(59,130,246,0.5); }
+
+    .ready-card {
+        background: rgba(16,185,129,0.08);
+        border: 2px solid rgba(16,185,129,0.25);
+    }
+    .ready-card:hover { border-color: #10b981; }
+    .ready-focused {
+        border-color: #10b981 !important;
+        background: rgba(16,185,129,0.18) !important;
+        box-shadow: 0 0 20px rgba(16,185,129,0.4);
+    }
+
+    .pickup-order-num { font-size: 3rem; font-weight: 900; color: #3b82f6; line-height: 1; margin-bottom: 0.3rem; }
+    .ready-order-num { font-size: 3.5rem; font-weight: 900; color: #10b981; line-height: 1; margin-bottom: 0.3rem; }
+    .pickup-order-type { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
+    .ready-order-type { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
+    .pickup-customer, .pickup-phone, .pickup-table { font-size: 0.85rem; color: #cbd5e1; }
+    .pickup-elapsed { font-size: 0.78rem; color: #64748b; margin-top: 0.4rem; }
+    .pickup-items-count { font-size: 0.75rem; color: #475569; }
+
+    .ready-action { margin-top: 0.75rem; text-align: center; }
+    .focused-hint {
+        display: inline-block;
+        background: #10b981;
+        color: #000;
+        border-radius: 8px;
+        padding: 0.3rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        animation: pulse-green 1s ease-in-out infinite;
+    }
+    .unfocused-hint { font-size: 0.75rem; color: #475569; }
+    @@keyframes pulse-green { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+
+    .pickup-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        background: #0f172a;
+        border-top: 1px solid #1e293b;
+        padding: 0.4rem;
+        font-size: 0.75rem;
+        color: #475569;
+        flex-shrink: 0;
+    }
+    .sep { color: #334155; }
+    .auto-refresh-info { color: #374151; }
+</style>
+
+@code {
+    [Parameter] public int BranchId { get; set; }
+
+    private List<KdsOrderTicketDto> _preparing = new();
+    private List<KdsOrderTicketDto> _ready = new();
+    private int _focusedReadyIndex = 0;
+    private DateTime _currentTime = DateTime.Now;
+    private System.Timers.Timer? _refreshTimer;
+    private System.Timers.Timer? _clockTimer;
+    private ElementReference _containerRef;
+    private int _prevReadyCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+
+        _refreshTimer = new System.Timers.Timer(8_000);
+        _refreshTimer.Elapsed += async (_, _) => await InvokeAsync(RefreshOrders);
+        _refreshTimer.AutoReset = true;
+        _refreshTimer.Start();
+
+        _clockTimer = new System.Timers.Timer(1_000);
+        _clockTimer.Elapsed += async (_, _) =>
+        {
+            _currentTime = DateTime.Now;
+            await InvokeAsync(StateHasChanged);
+        };
+        _clockTimer.AutoReset = true;
+        _clockTimer.Start();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try { await _containerRef.FocusAsync(); } catch { }
+        }
+    }
+
+    private async Task LoadOrders()
+    {
+        var all = await KdsService.GetActivePickupOrders(BranchId);
+        SplitOrders(all);
+    }
+
+    private async Task RefreshOrders()
+    {
+        var all = await KdsService.GetActivePickupOrders(BranchId);
+        int newReadyCount = all.Count(o => o.Status == "Ready");
+        bool newReady = newReadyCount > _prevReadyCount;
+        _prevReadyCount = newReadyCount;
+        SplitOrders(all);
+        if (newReady)
+        {
+            try { await JS.InvokeVoidAsync("kdsAudio.playReadyChime"); } catch { }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SplitOrders(List<KdsOrderTicketDto> all)
+    {
+        _preparing = all.Where(o => o.Status == "Preparing").ToList();
+        _ready = all.Where(o => o.Status == "Ready").ToList();
+        if (_focusedReadyIndex >= _ready.Count)
+            _focusedReadyIndex = Math.Max(0, _ready.Count - 1);
+        _prevReadyCount = _ready.Count;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "Tab":
+                if (_ready.Count > 0)
+                {
+                    _focusedReadyIndex = (_focusedReadyIndex + 1) % _ready.Count;
+                    StateHasChanged();
+                }
+                break;
+            case "Enter":
+                if (_ready.Count > 0 && _focusedReadyIndex < _ready.Count)
+                {
+                    await CompleteOrder(_ready[_focusedReadyIndex].OrderId);
+                }
+                break;
+        }
+    }
+
+    private async Task CompleteOrder(int orderId)
+    {
+        await KdsService.CompletePickupOrder(orderId);
+        await LoadOrders();
+        StateHasChanged();
+    }
+
+    private void SelectReady(int idx)
+    {
+        _focusedReadyIndex = idx;
+        StateHasChanged();
+    }
+
+    private string FormatElapsed(double minutes)
+    {
+        int m = (int)minutes;
+        int s = (int)((minutes - m) * 60);
+        return $"{m:D2}:{s:D2}";
+    }
+
+    private void GoBack() => NavManager.NavigateTo("/");
+
+    public void Dispose()
+    {
+        _refreshTimer?.Stop();
+        _refreshTimer?.Dispose();
+        _clockTimer?.Stop();
+        _clockTimer?.Dispose();
+    }
+}

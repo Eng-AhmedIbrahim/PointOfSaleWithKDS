@@ -1,8 +1,16 @@
 [
   {
+    "FeatureName": "EnableKdsSystem",
+    "NameEn": "Enable Kitchen & Pickup Displays (KDS)",
+    "NameAr": "تفعيل نظام شاشات المطبخ والاستلام (KDS)",
+    "ModuleName": "Kitchen",
+    "ScreenName": "KDS & Pickup",
+    "Value": true
+  },
+  {
     "FeatureName": "EnableReservation",
     "NameEn": "Enable Reservation System",
-    "NameAr": "تفعيل نظام الحجز",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ù†Ø¸Ø§Ù… Ø§Ù„Ø­Ø¬Ø²",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -10,7 +18,7 @@
   {
     "FeatureName": "EnableWaiterSelection",
     "NameEn": "Enable Waiter Selection",
-    "NameAr": "تفعيل اختيار الويتر",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„ÙˆÙŠØªØ±",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -18,7 +26,7 @@
   {
     "FeatureName": "EnableCaptainSelection",
     "NameEn": "Enable Captain Selection",
-    "NameAr": "تفعيل اختيار الكابتن",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„ÙƒØ§Ø¨ØªÙ†",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -26,7 +34,7 @@
   {
     "FeatureName": "EnableTableMerge",
     "NameEn": "Enable Table Merge",
-    "NameAr": "تفعيل دمج الطاولات",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ø¯Ù…Ø¬ Ø§Ù„Ø·Ø§ÙˆÙ„Ø§Øª",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -34,7 +42,7 @@
   {
     "FeatureName": "EnableTableTransfer",
     "NameEn": "Enable Table Transfer",
-    "NameAr": "تفعيل نقل الطاولات",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ù†Ù‚Ù„ Ø§Ù„Ø·Ø§ÙˆÙ„Ø§Øª",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -42,7 +50,7 @@
   {
     "FeatureName": "EnableSplitBill",
     "NameEn": "Enable Split Bill",
-    "NameAr": "تفعيل تقسيم الشيك",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ ØªÙ‚Ø³ÙŠÙ… Ø§Ù„Ø´ÙŠÙƒ",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -50,7 +58,7 @@
   {
     "FeatureName": "EnableGuestCount",
     "NameEn": "Enable Guest Count",
-    "NameAr": "تفعيل عدد الضيوف",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ø¹Ø¯Ø¯ Ø§Ù„Ø¶ÙŠÙˆÙ",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -58,7 +66,7 @@
   {
     "FeatureName": "DineIn_Button_Order",
     "NameEn": "Order Button",
-    "NameAr": "زر الطلب",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -66,7 +74,7 @@
   {
     "FeatureName": "DineIn_Button_Receipt",
     "NameEn": "Receipt Button",
-    "NameAr": "زر الفاتورة",
+    "NameAr": "Ø²Ø± Ø§Ù„ÙØ§ØªÙˆØ±Ø©",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -74,7 +82,7 @@
   {
     "FeatureName": "DineIn_Button_CloseTable",
     "NameEn": "Close Table Button",
-    "NameAr": "زر إغلاق الطاولة",
+    "NameAr": "Ø²Ø± Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ø·Ø§ÙˆÙ„Ø©",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -82,7 +90,7 @@
   {
     "FeatureName": "DineIn_Button_Void",
     "NameEn": "Void Button",
-    "NameAr": "زر الإلغاء",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø¥Ù„ØºØ§Ø¡",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -90,7 +98,7 @@
   {
     "FeatureName": "DineIn_Button_Back",
     "NameEn": "Back Button",
-    "NameAr": "زر الرجوع",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø±Ø¬ÙˆØ¹",
     "ModuleName": "Dine-In",
     "ScreenName": "Dine-In Hall",
     "Value": true
@@ -98,7 +106,7 @@
   {
     "FeatureName": "POS_Keypad_Numbers",
     "NameEn": "Keypad Numbers",
-    "NameAr": "أرقام لوحة المفاتيح",
+    "NameAr": "Ø£Ø±Ù‚Ø§Ù… Ù„ÙˆØ­Ø© Ø§Ù„Ù…ÙØ§ØªÙŠØ­",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -106,7 +114,7 @@
   {
     "FeatureName": "POS_Keypad_BS",
     "NameEn": "Backspace Button",
-    "NameAr": "زر المسح",
+    "NameAr": "Ø²Ø± Ø§Ù„Ù…Ø³Ø­",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -114,7 +122,7 @@
   {
     "FeatureName": "POS_Keypad_Plus",
     "NameEn": "Increment Button",
-    "NameAr": "زر الزيادة",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø²ÙŠØ§Ø¯Ø©",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -122,7 +130,7 @@
   {
     "FeatureName": "POS_Keypad_Minus",
     "NameEn": "Decrement Button",
-    "NameAr": "زر النقص",
+    "NameAr": "Ø²Ø± Ø§Ù„Ù†Ù‚Øµ",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -130,7 +138,7 @@
   {
     "FeatureName": "POS_Keypad_Delete",
     "NameEn": "Delete Item Button",
-    "NameAr": "زر حذف الصنف",
+    "NameAr": "Ø²Ø± Ø­Ø°Ù Ø§Ù„ØµÙ†Ù",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -138,7 +146,7 @@
   {
     "FeatureName": "POS_Keypad_Discount",
     "NameEn": "Item Discount Button",
-    "NameAr": "زر خصم الصنف",
+    "NameAr": "Ø²Ø± Ø®ØµÙ… Ø§Ù„ØµÙ†Ù",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -146,7 +154,7 @@
   {
     "FeatureName": "POS_Keypad_Edit",
     "NameEn": "Item Edit/Note Button",
-    "NameAr": "زر تعديل الصنف/الملاحظة",
+    "NameAr": "Ø²Ø± ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØµÙ†Ù/Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø©",
     "ModuleName": "POS",
     "ScreenName": "POS (Actions)",
     "Value": true
@@ -154,7 +162,7 @@
   {
     "FeatureName": "POS_Button_Cancel",
     "NameEn": "Cancel Order Button",
-    "NameAr": "زر إلغاء الطلب",
+    "NameAr": "Ø²Ø± Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "POS",
     "ScreenName": "POS (Section 4)",
     "Value": true
@@ -162,7 +170,7 @@
   {
     "FeatureName": "POS_Button_Waiting",
     "NameEn": "Waiting Button",
-    "NameAr": "زر الانتظار",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±",
     "ModuleName": "POS",
     "ScreenName": "POS (Section 4)",
     "Value": true
@@ -170,7 +178,7 @@
   {
     "FeatureName": "POS_Button_Print",
     "NameEn": "Print Order Button",
-    "NameAr": "زر طباعة الطلب",
+    "NameAr": "Ø²Ø± Ø·Ø¨Ø§Ø¹Ø© Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "POS",
     "ScreenName": "POS (Section 4)",
     "Value": true
@@ -178,7 +186,7 @@
   {
     "FeatureName": "Navbar_Button_Tables",
     "NameEn": "Navbar: Tables",
-    "NameAr": "شريط التنقل: الطاولات",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø§Ù„Ø·Ø§ÙˆÙ„Ø§Øª",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -186,7 +194,7 @@
   {
     "FeatureName": "Navbar_Button_Delivery",
     "NameEn": "Navbar: Delivery",
-    "NameAr": "شريط التنقل: التوصيل",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø§Ù„ØªÙˆØµÙŠÙ„",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -194,7 +202,7 @@
   {
     "FeatureName": "Navbar_Button_TakeAway",
     "NameEn": "Navbar: TakeAway",
-    "NameAr": "شريط التنقل: تيك أوي",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: ØªÙŠÙƒ Ø£ÙˆÙŠ",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -202,7 +210,7 @@
   {
     "FeatureName": "Navbar_Button_Accounts",
     "NameEn": "Navbar: Accounts",
-    "NameAr": "شريط التنقل: الحسابات",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -210,7 +218,7 @@
   {
     "FeatureName": "Navbar_Button_Summary",
     "NameEn": "Navbar: Summary",
-    "NameAr": "شريط التنقل: الملخص",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø§Ù„Ù…Ù„Ø®Øµ",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -218,7 +226,7 @@
   {
     "FeatureName": "Navbar_Button_Distribution",
     "NameEn": "Navbar: Distribution",
-    "NameAr": "شريط التنقل: التوزيع",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø§Ù„ØªÙˆØ²ÙŠØ¹",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -226,7 +234,7 @@
   {
     "FeatureName": "Navbar_Button_AllOrders",
     "NameEn": "Navbar: All Orders",
-    "NameAr": "شريط التنقل: كل الطلبات",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: ÙƒÙ„ Ø§Ù„Ø·Ù„Ø¨Ø§Øª",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -234,7 +242,7 @@
   {
     "FeatureName": "Navbar_Button_Exit",
     "NameEn": "Navbar: Exit",
-    "NameAr": "شريط التنقل: خروج",
+    "NameAr": "Ø´Ø±ÙŠØ· Ø§Ù„ØªÙ†Ù‚Ù„: Ø®Ø±ÙˆØ¬",
     "ModuleName": "Layout",
     "ScreenName": "POS Navbar",
     "Value": true
@@ -242,7 +250,7 @@
   {
     "FeatureName": "Footer_Button_Discount",
     "NameEn": "Footer: Order Discount",
-    "NameAr": "تذييل الصفحة: خصم الطلب",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø®ØµÙ… Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -250,7 +258,7 @@
   {
     "FeatureName": "Footer_Button_CustomerData",
     "NameEn": "Footer: Customer Data",
-    "NameAr": "تذييل الصفحة: بيانات العميل",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -258,7 +266,7 @@
   {
     "FeatureName": "Footer_Button_PaymentMethod",
     "NameEn": "Footer: Payment Method",
-    "NameAr": "تذييل الصفحة: طريقة الدفع",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -266,7 +274,7 @@
   {
     "FeatureName": "Footer_Button_QuickPayment",
     "NameEn": "Footer: Quick Payment",
-    "NameAr": "تذييل الصفحة: دفع سريع",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø¯ÙØ¹ Ø³Ø±ÙŠØ¹",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -274,7 +282,7 @@
   {
     "FeatureName": "Footer_Button_Meals",
     "NameEn": "Footer: Meals",
-    "NameAr": "تذييل الصفحة: الوجبات",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø§Ù„ÙˆØ¬Ø¨Ø§Øª",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -282,7 +290,7 @@
   {
     "FeatureName": "Footer_Button_Waiting",
     "NameEn": "Footer: Waiting Queue",
-    "NameAr": "تذييل الصفحة: قائمة الانتظار",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -290,7 +298,7 @@
   {
     "FeatureName": "Footer_Button_Settings",
     "NameEn": "Footer: Settings",
-    "NameAr": "تذييل الصفحة: الإعدادات",
+    "NameAr": "ØªØ°ÙŠÙŠÙ„ Ø§Ù„ØµÙØ­Ø©: Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª",
     "ModuleName": "Layout",
     "ScreenName": "POS Footer",
     "Value": true
@@ -298,7 +306,7 @@
   {
     "FeatureName": "Delivery_Button_Order",
     "NameEn": "Order Button",
-    "NameAr": "زر الطلب",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -306,7 +314,7 @@
   {
     "FeatureName": "Delivery_Button_AddNew",
     "NameEn": "Add New Button",
-    "NameAr": "زر إضافة جديد",
+    "NameAr": "Ø²Ø± Ø¥Ø¶Ø§ÙØ© Ø¬Ø¯ÙŠØ¯",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -314,7 +322,7 @@
   {
     "FeatureName": "Delivery_Button_Clear",
     "NameEn": "Clear Button",
-    "NameAr": "زر مسح",
+    "NameAr": "Ø²Ø± Ù…Ø³Ø­",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -322,7 +330,7 @@
   {
     "FeatureName": "Delivery_Button_Complaints",
     "NameEn": "Complaints Button",
-    "NameAr": "زر الشكاوى",
+    "NameAr": "Ø²Ø± Ø§Ù„Ø´ÙƒØ§ÙˆÙ‰",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -330,7 +338,7 @@
   {
     "FeatureName": "Delivery_Button_Search",
     "NameEn": "Search Button",
-    "NameAr": "زر بحث",
+    "NameAr": "Ø²Ø± Ø¨Ø­Ø«",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -338,7 +346,7 @@
   {
     "FeatureName": "Delivery_Button_BranchMgmt",
     "NameEn": "Branch Management Button",
-    "NameAr": "زر إدارة الفروع",
+    "NameAr": "Ø²Ø± Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙØ±ÙˆØ¹",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -346,7 +354,7 @@
   {
     "FeatureName": "Delivery_Button_Distribution",
     "NameEn": "Distribution Button",
-    "NameAr": "زر التوزيع",
+    "NameAr": "Ø²Ø± Ø§Ù„ØªÙˆØ²ÙŠØ¹",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -354,7 +362,7 @@
   {
     "FeatureName": "Delivery_Button_ToggleDir",
     "NameEn": "Toggle Direction Button",
-    "NameAr": "زر تغيير الاتجاه",
+    "NameAr": "Ø²Ø± ØªØºÙŠÙŠØ± Ø§Ù„Ø§ØªØ¬Ø§Ù‡",
     "ModuleName": "Delivery",
     "ScreenName": "Delivery Actions",
     "Value": true
@@ -362,7 +370,7 @@
   {
     "FeatureName": "posSettingsFeature",
     "NameEn": "Global POS Settings Button",
-    "NameAr": "زر إعدادات النظام العام",
+    "NameAr": "Ø²Ø± Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù… Ø§Ù„Ø¹Ø§Ù…",
     "ModuleName": "Layout",
     "ScreenName": "General",
     "Value": true
@@ -370,7 +378,7 @@
   {
     "FeatureName": "EnableMinQuantityStop",
     "NameEn": "Stop Sale on Min Stock",
-    "NameAr": "منع البيع عند حد الطلب",
+    "NameAr": "Ù…Ù†Ø¹ Ø§Ù„Ø¨ÙŠØ¹ Ø¹Ù†Ø¯ Ø­Ø¯ Ø§Ù„Ø·Ù„Ø¨",
     "ModuleName": "Inventory",
     "ScreenName": "Inventory Management",
     "Value": false
@@ -378,7 +386,7 @@
   {
     "FeatureName": "EnableInventoryTracking",
     "NameEn": "Enable Inventory Tracking",
-    "NameAr": "تفعيل نظام المخازن",
+    "NameAr": "ØªÙØ¹ÙŠÙ„ Ù†Ø¸Ø§Ù… Ø§Ù„Ù…Ø®Ø§Ø²Ù†",
     "ModuleName": "Inventory",
     "ScreenName": "Inventory Management",
     "Value": true
@@ -386,7 +394,7 @@
   {
     "FeatureName": "Startup_TakeAway",
     "NameEn": "Default Screen: Take Away",
-    "NameAr": "الشاشة الافتراضية: التيك أوي",
+    "NameAr": "Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©: Ø§Ù„ØªÙŠÙƒ Ø£ÙˆÙŠ",
     "ModuleName": "Startup",
     "ScreenName": "General",
     "Value": true
@@ -394,7 +402,7 @@
   {
     "FeatureName": "Startup_Delivery",
     "NameEn": "Default Screen: Delivery",
-    "NameAr": "الشاشة الافتراضية: التوصيل",
+    "NameAr": "Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©: Ø§Ù„ØªÙˆØµÙŠÙ„",
     "ModuleName": "Startup",
     "ScreenName": "General",
     "Value": false
@@ -402,7 +410,7 @@
   {
     "FeatureName": "Startup_DineIn",
     "NameEn": "Default Screen: Dine-In",
-    "NameAr": "الشاشة الافتراضية: الصالة",
+    "NameAr": "Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©: Ø§Ù„ØµØ§Ù„Ø©",
     "ModuleName": "Startup",
     "ScreenName": "General",
     "Value": false
@@ -410,7 +418,7 @@
   {
     "FeatureName": "Startup_Distribution",
     "NameEn": "Default Screen: Distribution",
-    "NameAr": "الشاشة الافتراضية: التوزيع",
+    "NameAr": "Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©: Ø§Ù„ØªÙˆØ²ÙŠØ¹",
     "ModuleName": "Startup",
     "ScreenName": "General",
     "Value": false
@@ -418,7 +426,7 @@
   {
     "FeatureName": "IsCallCenter",
     "NameEn": "Is Call Center Device",
-    "NameAr": "جهاز كول سنتر مركزي",
+    "NameAr": "Ø¬Ù‡Ø§Ø² ÙƒÙˆÙ„ Ø³Ù†ØªØ± Ù…Ø±ÙƒØ²ÙŠ",
     "ModuleName": "Delivery",
     "ScreenName": "Call Center",
     "Value": false

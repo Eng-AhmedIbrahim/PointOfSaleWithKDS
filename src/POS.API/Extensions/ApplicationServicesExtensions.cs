@@ -46,6 +46,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped(typeof(IPrinterServices), typeof(PrinterService));
         services.AddScoped(typeof(IKitchenServices), typeof(KitchenServices));
         services.AddScoped(typeof(IKitchenPrintersService), typeof(KitchenPrinterService));
+        services.AddScoped<POS.Core.Services.Contract.KitchenServices.IKdsService, POS.Services.KitchenServices.KdsService>();
         services.AddScoped(typeof(IDineInOrderService), typeof(DineInOrderService));
         services.AddScoped(typeof(IOrderTrackService), typeof(OrderTrackService));
         services.AddScoped(typeof(IPosFeatureSettingsService), typeof(PosFeatureSettingsService));
