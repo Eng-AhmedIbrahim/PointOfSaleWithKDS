@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackOffice.Desktop", "BackOffice.Desktop\BackOffice.Desktop.csproj", "{C596BC52-4ABB-4CD0-A0B3-4F03436D5322}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LicenseManager", "LicenseManager\LicenseManager.csproj", "{FCC7CC45-8A25-4B72-B6FE-6EC4B40762B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KDS.Desktop", "KDS.Desktop\KDS.Desktop.csproj", "{A87B2E34-4C21-4E89-B28C-311D7F2A1234}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,22 @@ Global
 		{FCC7CC45-8A25-4B72-B6FE-6EC4B40762B0}.Release|x64.Build.0 = Release|Any CPU
 		{FCC7CC45-8A25-4B72-B6FE-6EC4B40762B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{FCC7CC45-8A25-4B72-B6FE-6EC4B40762B0}.Release|x86.Build.0 = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|x64.Build.0 = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Debug|x86.Build.0 = Debug|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|x64.ActiveCfg = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|x64.Build.0 = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|x86.ActiveCfg = Release|Any CPU
+		{A87B2E34-4C21-4E89-B28C-311D7F2A1234}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
