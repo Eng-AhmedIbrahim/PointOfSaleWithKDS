@@ -14,6 +14,10 @@
       {
         "Path": "BackOffice.Desktop\\BackOffice.Desktop.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "KDS.Desktop\\KDS.Desktop.csproj",
+        "Action": "Start"
       }
     ]
   },

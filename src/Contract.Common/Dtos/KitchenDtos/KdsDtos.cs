@@ -41,8 +41,8 @@ public class KdsOrderTicketDto
     public string? OrderNotice { get; set; }
     public DateTime? KitchenOutTime { get; set; }
     public DateTime? PackingOutTime { get; set; }
-    public double ElapsedMinutes => OrderDate.HasValue 
-        ? Math.Max(0, (DateTime.Now - OrderDate.Value).TotalMinutes) 
+    public double ElapsedMinutes => OrderDate.HasValue
+        ? Math.Max(0, (DateTime.Now - DateTime.Today.Add(OrderDate.Value.TimeOfDay)).TotalMinutes)
         : 0;
     public string Status { get; set; } = "Preparing"; // "Preparing", "Ready", "Delivered"
     public List<KdsTicketItemDto> Items { get; set; } = new();
