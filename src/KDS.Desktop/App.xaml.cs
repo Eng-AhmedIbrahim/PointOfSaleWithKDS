@@ -4,6 +4,7 @@ using System.Windows;
 using BlazorBase;
 using BlazorBase.ERPFrontServices.BranchServices;
 using BlazorBase.ERPFrontServices.KdsServices;
+using KDS.Desktop.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -39,7 +40,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Fatal(ex, "Failed to start KDS Desktop application");
-            MessageBox.Show($"خطأ في تشغيل شاشة المطبخ:\n{ex.Message}", "خطأ في التشغيل", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"خطأ في تشغيل التطبيق:\n{ex.Message}", "خطأ في التشغيل", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown();
         }
     }
@@ -64,6 +65,11 @@ public partial class App : Application
         services.Configure<BlazorBase.API.ApiSettings>(configuration.GetSection("ApiSettings"));
         services.AddSingleton<BlazorBase.API.ApiSettings>(sp =>
             sp.GetRequiredService<IOptions<BlazorBase.API.ApiSettings>>().Value);
+
+        // KDS Settings — read from appsettings.json → KdsSettings
+        var kdsSettings = configuration.GetSection("KdsSettings").Get<KdsAppSettings>()
+                          ?? new KdsAppSettings();
+        services.AddSingleton(kdsSettings);
 
         // HTTP Client
         string apiName = configuration["ApiSettings:ApiName"] ?? "POSAPI";

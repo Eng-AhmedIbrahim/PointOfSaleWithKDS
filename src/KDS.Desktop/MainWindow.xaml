@@ -6,14 +6,14 @@
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         xmlns:local="clr-namespace:KDS.Desktop"
         mc:Ignorable="d"
-        Title="نظام شاشات المطبخ والبيكاب - KDS &amp; Pickup System" 
-        Height="900" 
-        Width="1600"
-        WindowStartupLocation="CenterScreen"
+        Title="نظام شاشة المطبخ - KDS &amp; Pickup System"
+        WindowStyle="None"
+        ResizeMode="NoResize"
         WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
         Background="#0f172a">
     <Grid Background="#0f172a">
-        <blazor:BlazorWebView x:Name="blazorWebView" 
+        <blazor:BlazorWebView x:Name="blazorWebView"
                                HostPage="wwwroot/index.html">
             <blazor:BlazorWebView.RootComponents>
                 <blazor:RootComponent Selector="#app" ComponentType="{x:Type local:Components.App}" />

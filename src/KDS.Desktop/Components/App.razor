@@ -1,3 +1,7 @@
+@using KDS.Desktop.Services
+@inject KdsAppSettings KdsConfig
+@inject NavigationManager NavManager
+
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)" />
@@ -10,3 +14,17 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Navigate directly to the configured screen — no ScreenSelector UI
+            if (KdsConfig.IsPickup)
+                NavManager.NavigateTo($"/pickup/{KdsConfig.BranchId}", replace: true);
+            else
+                NavManager.NavigateTo($"/kitchen/{KdsConfig.BranchId}/{KdsConfig.ScreenId}", replace: true);
+        }
+    }
+}
