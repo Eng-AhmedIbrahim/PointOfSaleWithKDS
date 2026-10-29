@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using POS.Contract.Dtos.KitchenDtos;
 using POS.Core.Entities.Kitchen;
 using POS.Core.Entities.OrderEntity;
@@ -102,13 +102,16 @@ public class KdsService : IKdsService
             }
         }
 
-        // 2. Query today's active orders (not finished in kitchen, not voided/canceled)
-        var today = DateTime.Today;
+        // 2. Determine effective date: use AppDates (PosDate) if set, otherwise DateTime.Today
+        var effectiveDate = await GetEffectivePosDateAsync(branchId);
+
+        // 3. Query active kitchen orders:
+        // Must NOT have completed kitchen prep (KitchenOutTime == null)
+        // Must NOT be voided or canceled
         var query = _dbContext.Orders
             .Include(o => o.OrderDetails)
-            .Where(o => o.OrderDate >= today
+            .Where(o => o.OrderDate >= effectiveDate
                      && o.KitchenOutTime == null
-                     && o.ClosingTime == null
                      && o.OrderState != OrderStates.Voided
                      && o.OrderState != OrderStates.Canceled);
 
@@ -215,12 +218,11 @@ public class KdsService : IKdsService
 
     public async Task<List<KdsOrderTicketDto>> GetActivePickupOrdersAsync(int branchId)
     {
-        var today = DateTime.Today;
+        var effectiveDate = await GetEffectivePosDateAsync(branchId);
         var query = _dbContext.Orders
             .Include(o => o.OrderDetails)
-            .Where(o => o.OrderDate >= today
+            .Where(o => o.OrderDate >= effectiveDate
                      && o.PackingOutTime == null
-                     && o.ClosingTime == null
                      && o.OrderState != OrderStates.Voided
                      && o.OrderState != OrderStates.Canceled);
 
@@ -290,6 +292,28 @@ public class KdsService : IKdsService
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
+    private async Task<DateTime> GetEffectivePosDateAsync(int branchId)
+    {
+        try
+        {
+            var appDate = await _dbContext.AppDate
+                .Where(a => branchId <= 0 || a.BranchId == branchId || a.BranchId == 0)
+                .OrderByDescending(a => a.PosDate)
+                .FirstOrDefaultAsync();
+
+            if (appDate != null && appDate.PosDate != default)
+            {
+                return appDate.PosDate.Date;
+            }
+        }
+        catch
+        {
+            // fallback
+        }
+
+        return DateTime.Today;
+    }
+
     private static KdsScreenDto MapToDto(KdsScreen s) => new()
     {
         Id = s.Id,
@@ -307,6 +331,9 @@ public class KdsService : IKdsService
     {
         OrderTypes.Delivery => "دليفري",
         OrderTypes.DineIn => "صالة",
+        OrderTypes.TakeAway => "تيك أواي",
+        OrderTypes.Staff => "وجبة موظف",
+        OrderTypes.Hospitality => "ضيافة",
         _ => "تيك أواي"
     };
 }
