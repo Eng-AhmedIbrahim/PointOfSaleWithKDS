@@ -22,7 +22,7 @@
             }
         </div>
         <div class="kds-header-left">
-            <div class="clock">@_currentTime.ToString("HH:mm:ss")</div>
+            <div class="clock">@_currentTime.ToString("hh:mm:ss tt")</div>
             <div class="branch-info">فرع @BranchId | شاشة @ScreenId</div>
         </div>
     </div>
@@ -38,7 +38,7 @@
     else if (_tickets.Count == 0)
     {
         <div class="kds-center">
-            <div style="font-size:4rem;">✅</div>
+            <div style="font-size:4rem;">🎉</div>
             <div style="color:#10b981;font-size:1.5rem;font-weight:700;margin-top:1rem;">لا توجد طلبات حالياً</div>
             <div style="color:#64748b;margin-top:0.5rem;">الطلبات الجديدة ستظهر هنا تلقائياً</div>
         </div>
@@ -69,47 +69,45 @@
                         <div class="order-type-badge">@ticket.OrderTypeName</div>
                         @if (!string.IsNullOrEmpty(ticket.TableName))
                         {
-                            <div class="meta-item">🪑 @ticket.TableName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
-                        {
-                            <div class="meta-item">👤 @ticket.CustomerName</div>
+                            <div class="table-badge">طاولة: @ticket.TableName</div>
                         }
                         @if (!string.IsNullOrEmpty(ticket.WaiterName))
                         {
-                            <div class="meta-item">🧑‍💼 @ticket.WaiterName</div>
+                            <div class="waiter-badge">ويتر: @ticket.WaiterName</div>
                         }
-                        @if (!string.IsNullOrEmpty(ticket.OrderNotice))
+                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
                         {
-                            <div class="notice-badge">⚠️ @ticket.OrderNotice</div>
+                            <div class="customer-name">@ticket.CustomerName</div>
                         }
                     </div>
+
+                    <!-- Order Notice -->
+                    @if (!string.IsNullOrEmpty(ticket.OrderNotice))
+                    {
+                        <div class="order-notice">
+                            ⚠ @ticket.OrderNotice
+                        </div>
+                    }
 
                     <!-- Items List -->
                     <div class="ticket-items">
                         @foreach (var item in ticket.Items)
                         {
-                            <div class="ticket-item @(item.IsCompleted ? "item-done" : "")">
-                                <span class="item-qty">@item.Quantity×</span>
-                                <div class="item-details">
-                                    <div class="item-name">@(!string.IsNullOrEmpty(item.ItemNameAr) ? item.ItemNameAr : item.ItemName)</div>
-                                    @if (!string.IsNullOrEmpty(item.CategoryName))
-                                    {
-                                        <div class="item-cat">@item.CategoryName</div>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.Comment))
-                                    {
-                                        <div class="item-comment">💬 @item.Comment</div>
-                                    }
-                                </div>
+                            <div class="ticket-item">
+                                <span class="item-qty">@item.Quantity ×</span>
+                                <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                @if (!string.IsNullOrEmpty(item.Comment))
+                                {
+                                    <div class="item-comment">📝 @item.Comment</div>
+                                }
                             </div>
                         }
                     </div>
 
                     <!-- Bump Button -->
                     <div class="ticket-footer">
-                        <button class="btn-bump" @onclick="() => BumpOrder(ticket.OrderId)" @onclick:stopPropagation>
-                            ✓ تم التحضير (Enter)
+                        <button class="btn-bump" @onclick="() => BumpOrder(ticket.OrderId)" @onclick:stopPropagation="true">
+                            ✓ إنهاء وتحضير (Enter)
                         </button>
                     </div>
                 </div>
@@ -117,17 +115,15 @@
         </div>
     }
 
-    <!-- Keyboard Legend -->
-    <div class="kds-legend">
-        <span>← → أو ↑ ↓ تنقل</span>
+    <!-- Footer Controls -->
+    <div class="kds-footer">
+        <span class="shortcut">Enter / المسافة: إنهاء المحدد</span>
         <span class="sep">|</span>
-        <span>Enter / Space تم التحضير</span>
+        <span class="shortcut">الأسهم: التنقل</span>
         <span class="sep">|</span>
-        <span>R استرجاع</span>
+        <span class="shortcut">R: استرجاع</span>
         <span class="sep">|</span>
-        <span>Home أول طلب</span>
-        <span class="sep">|</span>
-        <span>End آخر طلب</span>
+        <span class="shortcut">تحديث تلقائي كل 10 ثوان</span>
     </div>
 </div>
 
@@ -136,106 +132,123 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        background: #0b1120;
-        color: #e2e8f0;
-        direction: rtl;
+        width: 100vw;
+        background-color: #0b1120;
+        color: #f1f5f9;
+        overflow: hidden;
+        user-select: none;
         outline: none;
-        font-family: 'Cairo', 'Outfit', sans-serif;
     }
+
     .kds-header {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         background: #0f172a;
-        border-bottom: 2px solid #1e293b;
         padding: 0.6rem 1.2rem;
-        min-height: 56px;
+        border-bottom: 2px solid #1e293b;
         flex-shrink: 0;
     }
-    .kds-header-right, .kds-header-center, .kds-header-left {
+
+    .kds-header-right, .kds-header-left {
         display: flex;
         align-items: center;
         gap: 1rem;
     }
-    .kds-header-left { flex-direction: column; align-items: flex-end; gap: 0; }
+
     .btn-back {
         background: #1e293b;
-        border: 1px solid #334155;
         color: #94a3b8;
+        border: 1px solid #334155;
         border-radius: 8px;
-        padding: 0.3rem 0.8rem;
+        padding: 0.4rem 0.9rem;
         cursor: pointer;
-        font-family: 'Cairo', sans-serif;
-        font-size: 0.85rem;
+        font-weight: 600;
+        font-size: 0.9rem;
         transition: all 0.2s;
     }
-    .btn-back:hover { border-color: #10b981; color: #10b981; }
-    .kds-title { font-size: 1.2rem; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 0.5rem; }
-    .kds-title-icon { font-size: 1.5rem; }
-    .ticket-count { background: #10b981; color: #fff; border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.9rem; font-weight: 700; }
+    .btn-back:hover { background: #334155; color: #fff; }
+
+    .kds-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .ticket-count {
+        background: #0284c7;
+        color: #fff;
+        padding: 0.3rem 0.9rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
     .btn-recall {
-        background: #f59e0b;
-        color: #000;
+        background: #d97706;
+        color: #fff;
         border: none;
         border-radius: 8px;
-        padding: 0.3rem 0.8rem;
+        padding: 0.35rem 0.9rem;
+        margin-right: 0.8rem;
         cursor: pointer;
-        font-family: 'Cairo', sans-serif;
         font-size: 0.85rem;
         font-weight: 700;
     }
-    .clock { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; font-family: 'Outfit', monospace; }
+
+    .clock { font-size: 1.3rem; font-weight: 700; color: #e2e8f0; font-family: 'Outfit', monospace; direction: ltr; }
     .branch-info { font-size: 0.75rem; color: #64748b; }
 
     .kds-center {
-        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        flex: 1;
     }
     .loading-spinner {
-        width: 48px; height: 48px;
-        border: 4px solid #334155;
-        border-top-color: #10b981;
+        width: 48px;
+        height: 48px;
+        border: 4px solid #1e293b;
+        border-top-color: #38bdf8;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
 
     .kds-grid {
-        flex: 1;
-        display: flex;
-        flex-wrap: wrap;
-        align-content: flex-start;
-        gap: 0.75rem;
-        padding: 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 0.85rem;
+        padding: 0.85rem;
         overflow-y: auto;
+        flex: 1;
+        align-content: start;
     }
 
     .kds-ticket {
-        background: #1e293b;
-        border: 2px solid #334155;
+        background: #111827;
+        border: 2px solid #1f2937;
         border-radius: 12px;
-        width: 260px;
-        min-width: 220px;
-        max-width: 300px;
-        flex: 1 1 240px;
         display: flex;
         flex-direction: column;
-        cursor: pointer;
-        transition: all 0.15s;
         overflow: hidden;
+        transition: transform 0.15s, border-color 0.15s;
+        cursor: pointer;
     }
-    .kds-ticket:hover { border-color: #475569; }
     .ticket-selected {
-        border-color: #10b981 !important;
-        box-shadow: 0 0 20px rgba(16,185,129,0.35);
-        background: #1a3040 !important;
+        outline: 3px solid #38bdf8;
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+        z-index: 10;
     }
-    .green-border { border-top: 4px solid #10b981 !important; }
-    .yellow-border { border-top: 4px solid #f59e0b !important; }
-    .red-border { border-top: 4px solid #ef4444 !important; }
+
+    .timer-green-border  { border-top: 5px solid #10b981; }
+    .timer-yellow-border { border-top: 5px solid #f59e0b; }
+    .timer-red-border    { border-top: 5px solid #ef4444; }
 
     .ticket-top {
         display: flex;
@@ -251,73 +264,85 @@
     @@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
 
     .ticket-meta {
-        padding: 0 0.75rem 0.4rem;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.3rem;
-        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.75rem 0.4rem;
+        font-size: 0.78rem;
     }
     .order-type-badge {
-        background: #334155;
-        color: #94a3b8;
-        border-radius: 6px;
-        padding: 0.15rem 0.5rem;
-        font-size: 0.75rem;
+        background: #1e3a5f;
+        color: #60a5fa;
+        padding: 0.15rem 0.45rem;
+        border-radius: 4px;
+        font-weight: 700;
     }
-    .meta-item { font-size: 0.78rem; color: #94a3b8; }
-    .notice-badge {
-        width: 100%;
-        background: rgba(245,158,11,0.15);
-        color: #f59e0b;
+    .table-badge  { background: #14532d; color: #4ade80; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; }
+    .waiter-badge { background: #3b0764; color: #c084fc; padding: 0.15rem 0.45rem; border-radius: 4px; }
+    .customer-name { color: #94a3b8; padding: 0.15rem 0; font-weight: 600; }
+
+    .order-notice {
+        background: #78350f;
+        color: #fde68a;
+        padding: 0.3rem 0.6rem;
+        margin: 0.2rem 0.75rem;
         border-radius: 6px;
-        padding: 0.2rem 0.5rem;
         font-size: 0.78rem;
-        margin-top: 0.2rem;
+        font-weight: 600;
     }
 
     .ticket-items {
         flex: 1;
-        padding: 0 0.75rem;
-        border-top: 1px solid #334155;
-        max-height: 240px;
+        padding: 0.4rem 0.75rem;
         overflow-y: auto;
+        max-height: 240px;
+        border-top: 1px solid #1f2937;
     }
+
     .ticket-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        padding: 0.4rem 0;
-        border-bottom: 1px solid #1e3a4a;
+        padding: 0.35rem 0;
+        border-bottom: 1px dashed #1e293b;
+        font-size: 0.95rem;
+        line-height: 1.3;
     }
     .ticket-item:last-child { border-bottom: none; }
-    .item-done { opacity: 0.4; text-decoration: line-through; }
-    .item-qty { font-size: 1rem; font-weight: 800; color: #10b981; min-width: 28px; }
-    .item-details { flex: 1; }
-    .item-name { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; }
-    .item-cat { font-size: 0.72rem; color: #64748b; }
-    .item-comment { font-size: 0.75rem; color: #f59e0b; margin-top: 0.15rem; }
+    .item-qty {
+        font-weight: 900;
+        color: #38bdf8;
+        margin-left: 0.4rem;
+        font-size: 1.05rem;
+    }
+    .item-name {
+        color: #f1f5f9;
+        font-weight: 700;
+    }
+    .item-comment {
+        font-size: 0.75rem;
+        color: #fbbf24;
+        margin-top: 0.15rem;
+        padding-right: 1.2rem;
+    }
 
     .ticket-footer {
-        padding: 0.6rem 0.75rem;
-        border-top: 1px solid #334155;
+        padding: 0.5rem 0.75rem;
+        background: #0f172a;
+        border-top: 1px solid #1f2937;
     }
     .btn-bump {
         width: 100%;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: #fff;
+        background: #10b981;
+        color: #022c22;
         border: none;
         border-radius: 8px;
-        padding: 0.5rem;
-        font-size: 0.9rem;
-        font-weight: 700;
-        font-family: 'Cairo', sans-serif;
+        padding: 0.55rem;
+        font-weight: 800;
+        font-size: 0.95rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: background 0.15s;
     }
-    .btn-bump:hover { background: linear-gradient(135deg, #059669, #047857); }
-    .btn-bump:active { transform: scale(0.97); }
+    .btn-bump:hover { background: #059669; color: #fff; }
 
-    .kds-legend {
+    .kds-footer {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -326,7 +351,7 @@
         border-top: 1px solid #1e293b;
         padding: 0.4rem;
         font-size: 0.75rem;
-        color: #475569;
+        color: #64748b;
         flex-shrink: 0;
     }
     .sep { color: #334155; }
@@ -369,7 +394,11 @@
     {
         if (firstRender)
         {
-            try { await _containerRef.FocusAsync(); } catch { }
+            try
+            {
+                await JS.InvokeVoidAsync("kdsFocus.init", _containerRef);
+            }
+            catch { }
         }
     }
 
@@ -456,7 +485,6 @@
                 StateHasChanged();
                 break;
             default:
-                // Number key direct navigation (1-9)
                 if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
                 {
                     int target = int.Parse(e.Key) - 1;

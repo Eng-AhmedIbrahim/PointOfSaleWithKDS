@@ -66,9 +66,9 @@ public class KdsController : BaseApiController
     }
 
     [HttpGet("active-pickup")]
-    public async Task<ActionResult<List<KdsOrderTicketDto>>> GetActivePickup([FromQuery] int branchId = 0)
+    public async Task<ActionResult<List<KdsOrderTicketDto>>> GetActivePickup([FromQuery] int branchId = 0, [FromQuery] int screenId = 0)
     {
-        var orders = await _kdsService.GetActivePickupOrdersAsync(branchId);
+        var orders = await _kdsService.GetActivePickupOrdersAsync(branchId, screenId);
         return Ok(orders);
     }
 

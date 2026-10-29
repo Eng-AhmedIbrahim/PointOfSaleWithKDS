@@ -13,6 +13,6 @@ public interface IKdsErpService
     Task<bool> BumpKitchenOrder(int orderId);
     Task<bool> RecallKitchenOrder(int orderId);
 
-    Task<List<KdsOrderTicketDto>> GetActivePickupOrders(int branchId = 0);
+    Task<List<KdsOrderTicketDto>> GetActivePickupOrders(int branchId = 0, int screenId = 0);
     Task<bool> CompletePickupOrder(int orderId);
 }

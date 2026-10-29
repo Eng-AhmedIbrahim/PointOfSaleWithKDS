@@ -216,8 +216,35 @@ public class KdsService : IKdsService
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
-    public async Task<List<KdsOrderTicketDto>> GetActivePickupOrdersAsync(int branchId)
+    public async Task<List<KdsOrderTicketDto>> GetActivePickupOrdersAsync(int branchId, int screenId = 0)
     {
+        // 1. Get Screen config if provided for Pickup screen
+        KdsScreen? screen = null;
+        if (screenId > 0)
+        {
+            screen = await _dbContext.KdsScreens.FindAsync(screenId);
+        }
+
+        var selectedCategoryIds = new HashSet<int>();
+        if (!string.IsNullOrWhiteSpace(screen?.SelectedCategoryIds))
+        {
+            foreach (var part in screen.SelectedCategoryIds.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(part.Trim(), out int catId))
+                    selectedCategoryIds.Add(catId);
+            }
+        }
+
+        var selectedItemIds = new HashSet<int>();
+        if (!string.IsNullOrWhiteSpace(screen?.SelectedItemIds))
+        {
+            foreach (var part in screen.SelectedItemIds.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(part.Trim(), out int itemId))
+                    selectedItemIds.Add(itemId);
+            }
+        }
+
         var effectiveDate = await GetEffectivePosDateAsync(branchId);
         var query = _dbContext.Orders
             .Include(o => o.OrderDetails)
@@ -239,20 +266,38 @@ public class KdsService : IKdsService
 
         foreach (var order in orders)
         {
+            // Odd / Even check
+            if (screen != null && !string.IsNullOrEmpty(screen.NumberFilter) && screen.NumberFilter != "All")
+            {
+                bool isOdd = (order.OrderID % 2 != 0);
+                if (screen.NumberFilter.Equals("Odd", StringComparison.OrdinalIgnoreCase) && !isOdd)
+                    continue;
+                if (screen.NumberFilter.Equals("Even", StringComparison.OrdinalIgnoreCase) && isOdd)
+                    continue;
+            }
+
             var activeItems = (order.OrderDetails ?? new List<OrderItemsDetails>())
                 .Where(d => d.IsVoided != true)
-                .Select(d => new KdsTicketItemDto
-                {
-                    Id = d.Id,
-                    MenuSalesItemId = d.MenuSalesItemId,
-                    ItemName = d.ItemNameAr ?? d.ItemName ?? "صنف",
-                    ItemNameAr = d.ItemNameAr,
-                    Quantity = d.Quantity ?? 1,
-                    CategoryId = d.CategoryId,
-                    CategoryName = d.CategoryName,
-                    Comment = d.LineComment,
-                    UnitPrice = d.UnitPrice
-                }).ToList();
+                .ToList();
+
+            if (selectedCategoryIds.Any())
+            {
+                activeItems = activeItems
+                    .Where(d => d.CategoryId.HasValue && selectedCategoryIds.Contains(d.CategoryId.Value))
+                    .ToList();
+            }
+
+            if (selectedItemIds.Any())
+            {
+                activeItems = activeItems
+                    .Where(d => d.MenuSalesItemId.HasValue && selectedItemIds.Contains(d.MenuSalesItemId.Value))
+                    .ToList();
+            }
+
+            if ((selectedCategoryIds.Any() || selectedItemIds.Any()) && !activeItems.Any())
+            {
+                continue;
+            }
 
             bool isReady = order.KitchenOutTime != null;
 
@@ -271,7 +316,18 @@ public class KdsService : IKdsService
                 KitchenOutTime = order.KitchenOutTime,
                 PackingOutTime = order.PackingOutTime,
                 Status = isReady ? "Ready" : "Preparing",
-                Items = activeItems
+                Items = activeItems.Select(d => new KdsTicketItemDto
+                {
+                    Id = d.Id,
+                    MenuSalesItemId = d.MenuSalesItemId,
+                    ItemName = d.ItemNameAr ?? d.ItemName ?? "صنف",
+                    ItemNameAr = d.ItemNameAr,
+                    Quantity = d.Quantity ?? 1,
+                    CategoryId = d.CategoryId,
+                    CategoryName = d.CategoryName,
+                    Comment = d.LineComment,
+                    UnitPrice = d.UnitPrice
+                }).ToList()
             });
         }
 

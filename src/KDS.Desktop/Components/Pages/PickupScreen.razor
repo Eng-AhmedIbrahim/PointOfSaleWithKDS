@@ -1,4 +1,5 @@
 @page "/pickup/{BranchId:int}"
+@page "/pickup/{BranchId:int}/{ScreenId:int}"
 @inject IKdsErpService KdsService
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
@@ -15,11 +16,11 @@
             </div>
         </div>
         <div class="pickup-header-center">
-            <div class="pickup-clock">@_currentTime.ToString("HH:mm:ss")</div>
+            <div class="pickup-clock">@_currentTime.ToString("hh:mm:ss tt")</div>
         </div>
         <div class="pickup-header-left">
-            <div class="pickup-branch">فرع @BranchId</div>
-            <div class="keyboard-hint">Tab للتنقل | Enter للإنهاء</div>
+            <div class="pickup-branch">فرع @BranchId @(ScreenId > 0 ? $"| شاشة {ScreenId}" : "")</div>
+            <div class="keyboard-hint">Tab للتنقل | Enter تسليم الطلب المحدد</div>
         </div>
     </div>
 
@@ -40,22 +41,41 @@
                 @foreach (var ticket in _preparing)
                 {
                     <div class="pickup-card preparing-card">
-                        <div class="pickup-order-num">#@ticket.DailyOrderNumber</div>
-                        <div class="pickup-order-type">@ticket.OrderTypeName</div>
-                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
-                        {
-                            <div class="pickup-customer">👤 @ticket.CustomerName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
-                        {
-                            <div class="pickup-phone">📞 @ticket.CustomerPhone</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.TableName))
-                        {
-                            <div class="pickup-table">🪑 @ticket.TableName</div>
-                        }
-                        <div class="pickup-elapsed">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
-                        <div class="pickup-items-count">@ticket.Items.Count صنف</div>
+                        <div class="pickup-card-header">
+                            <div class="pickup-order-num">#@ticket.DailyOrderNumber</div>
+                            <div class="pickup-order-type">@ticket.OrderTypeName</div>
+                        </div>
+
+                        <div class="pickup-meta-row">
+                            @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                            {
+                                <span class="pickup-customer">👤 @ticket.CustomerName</span>
+                            }
+                            @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
+                            {
+                                <span class="pickup-phone">📞 @ticket.CustomerPhone</span>
+                            }
+                            @if (!string.IsNullOrEmpty(ticket.TableName))
+                            {
+                                <span class="pickup-table">🍽 @ticket.TableName</span>
+                            }
+                            <span class="pickup-elapsed">⏱ @FormatElapsed(ticket.ElapsedMinutes)</span>
+                        </div>
+
+                        <!-- Full Items Display -->
+                        <div class="pickup-items-box">
+                            @foreach (var item in ticket.Items)
+                            {
+                                <div class="pickup-item-line">
+                                    <span class="p-qty">@item.Quantity ×</span>
+                                    <span class="p-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                    @if (!string.IsNullOrEmpty(item.Comment))
+                                    {
+                                        <span class="p-comment">(@item.Comment)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
                 }
             </div>
@@ -79,28 +99,53 @@
                     var idx = i;
                     <div class="pickup-card ready-card @(idx == _focusedReadyIndex ? "ready-focused" : "")"
                          @onclick="() => SelectReady(idx)">
-                        <div class="ready-order-num">#@ticket.DailyOrderNumber</div>
-                        <div class="ready-order-type">@ticket.OrderTypeName</div>
-                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
-                        {
-                            <div class="pickup-customer">👤 @ticket.CustomerName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
-                        {
-                            <div class="pickup-phone">📞 @ticket.CustomerPhone</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.TableName))
-                        {
-                            <div class="pickup-table">🪑 @ticket.TableName</div>
-                        }
+                        <div class="pickup-card-header">
+                            <div class="ready-order-num">#@ticket.DailyOrderNumber</div>
+                            <div class="ready-order-type">@ticket.OrderTypeName</div>
+                        </div>
+
+                        <div class="pickup-meta-row">
+                            @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                            {
+                                <span class="pickup-customer">👤 @ticket.CustomerName</span>
+                            }
+                            @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
+                            {
+                                <span class="pickup-phone">📞 @ticket.CustomerPhone</span>
+                            }
+                            @if (!string.IsNullOrEmpty(ticket.TableName))
+                            {
+                                <span class="pickup-table">🍽 @ticket.TableName</span>
+                            }
+                        </div>
+
+                        <!-- Full Items Display -->
+                        <div class="pickup-items-box">
+                            @foreach (var item in ticket.Items)
+                            {
+                                <div class="pickup-item-line">
+                                    <span class="p-qty ready-qty">@item.Quantity ×</span>
+                                    <span class="p-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                    @if (!string.IsNullOrEmpty(item.Comment))
+                                    {
+                                        <span class="p-comment">(@item.Comment)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
                         <div class="ready-action">
                             @if (idx == _focusedReadyIndex)
                             {
-                                <span class="focused-hint">[ Enter ] إنهاء الطلب</span>
+                                <button class="focused-btn" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
+                                    ✓ تسليم الطلب (Enter)
+                                </button>
                             }
                             else
                             {
-                                <span class="unfocused-hint">Tab للتحديد</span>
+                                <button class="unfocused-btn" @onclick="() => SelectReady(idx)">
+                                    انقر للاختيار أو اضغط Tab
+                                </button>
                             }
                         </div>
                     </div>
@@ -109,13 +154,13 @@
         </div>
     </div>
 
-    <!-- Footer Legend -->
+    <!-- Footer -->
     <div class="pickup-legend">
         <span>Tab = تنقل بين الجاهزين</span>
         <span class="sep">|</span>
         <span>Enter = تسليم الطلب وإنهاؤه</span>
         <span class="sep">|</span>
-        <span class="auto-refresh-info">تحديث تلقائي كل 8 ثوانٍ</span>
+        <span class="auto-refresh-info">تحديث تلقائي كل 8 ثوان</span>
     </div>
 </div>
 
@@ -124,139 +169,205 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        background: #0b1120;
-        color: #e2e8f0;
-        direction: rtl;
+        width: 100vw;
+        background-color: #0b1120;
+        color: #f1f5f9;
+        overflow: hidden;
+        user-select: none;
         outline: none;
-        font-family: 'Cairo', 'Outfit', sans-serif;
     }
+
     .pickup-header {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         background: #0f172a;
+        padding: 0.6rem 1.5rem;
         border-bottom: 2px solid #1e293b;
-        padding: 0.6rem 1.2rem;
-        min-height: 56px;
         flex-shrink: 0;
     }
-    .pickup-header-right, .pickup-header-center, .pickup-header-left {
+    .pickup-header-right, .pickup-header-left {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 1rem;
     }
-    .pickup-header-left { flex-direction: column; align-items: flex-end; gap: 0.1rem; }
     .btn-back {
         background: #1e293b;
-        border: 1px solid #334155;
         color: #94a3b8;
+        border: 1px solid #334155;
         border-radius: 8px;
-        padding: 0.3rem 0.8rem;
+        padding: 0.35rem 0.8rem;
         cursor: pointer;
-        font-family: 'Cairo', sans-serif;
+        font-weight: 600;
         font-size: 0.85rem;
     }
-    .btn-back:hover { border-color: #3b82f6; color: #3b82f6; }
-    .pickup-title { font-size: 1.2rem; font-weight: 800; color: #3b82f6; display: flex; align-items: center; gap: 0.4rem; }
-    .pickup-clock { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; font-family: 'Outfit', monospace; }
-    .pickup-branch { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
-    .keyboard-hint { font-size: 0.72rem; color: #475569; }
+    .btn-back:hover { background: #334155; color: #fff; }
+
+    .pickup-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #38bdf8;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .pickup-clock {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #f8fafc;
+        font-family: 'Outfit', monospace;
+        direction: ltr;
+    }
+    .pickup-branch { font-size: 0.85rem; color: #64748b; }
+    .keyboard-hint { font-size: 0.75rem; color: #475569; }
 
     .pickup-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
         flex: 1;
-        display: flex;
         overflow: hidden;
     }
 
     .pickup-col {
-        flex: 1;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        border-left: 2px solid #1e293b;
     }
-    .col-preparing { border-left: 2px solid #1e293b; }
+    .pickup-col:last-child { border-left: none; }
 
     .col-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        font-weight: 700;
-        font-size: 1.1rem;
+        justify-content: space-between;
+        padding: 0.75rem 1.5rem;
+        font-weight: 800;
+        font-size: 1.15rem;
+        border-bottom: 2px solid #1e293b;
         flex-shrink: 0;
     }
-    .preparing-header { background: rgba(59,130,246,0.1); color: #3b82f6; border-bottom: 2px solid rgba(59,130,246,0.3); }
-    .ready-header { background: rgba(16,185,129,0.1); color: #10b981; border-bottom: 2px solid rgba(16,185,129,0.3); }
-    .col-icon { font-size: 1.3rem; }
+    .preparing-header { background: #1e293b; color: #60a5fa; }
+    .ready-header     { background: #064e3b; color: #34d399; }
     .col-count {
-        background: #334155;
-        border-radius: 12px;
-        padding: 0.1rem 0.6rem;
-        font-size: 0.85rem;
-        margin-right: auto;
+        background: rgba(0,0,0,0.3);
+        border-radius: 20px;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.95rem;
     }
 
     .col-cards {
         flex: 1;
         overflow-y: auto;
-        padding: 0.75rem;
+        padding: 1rem;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 0.85rem;
     }
 
     .empty-col {
-        text-align: center;
         color: #475569;
-        padding: 3rem 1rem;
-        font-size: 0.95rem;
+        text-align: center;
+        margin-top: 4rem;
+        font-size: 1.1rem;
     }
 
     .pickup-card {
         border-radius: 12px;
-        padding: 1rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        user-select: none;
+        padding: 0.85rem 1rem;
+        transition: transform 0.15s, border-color 0.15s;
     }
+
+    .pickup-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.35rem;
+    }
+
     .preparing-card {
-        background: rgba(59,130,246,0.08);
-        border: 2px solid rgba(59,130,246,0.25);
+        background: #111827;
+        border: 2px solid #1e3a5f;
     }
-    .preparing-card:hover { border-color: rgba(59,130,246,0.5); }
-
     .ready-card {
-        background: rgba(16,185,129,0.08);
-        border: 2px solid rgba(16,185,129,0.25);
+        background: #0d2818;
+        border: 2px solid #065f46;
+        cursor: pointer;
     }
-    .ready-card:hover { border-color: #10b981; }
     .ready-focused {
-        border-color: #10b981 !important;
-        background: rgba(16,185,129,0.18) !important;
-        box-shadow: 0 0 20px rgba(16,185,129,0.4);
+        border: 3px solid #10b981;
+        transform: scale(1.02);
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
     }
 
-    .pickup-order-num { font-size: 3rem; font-weight: 900; color: #3b82f6; line-height: 1; margin-bottom: 0.3rem; }
-    .ready-order-num { font-size: 3.5rem; font-weight: 900; color: #10b981; line-height: 1; margin-bottom: 0.3rem; }
-    .pickup-order-type { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
-    .ready-order-type { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
-    .pickup-customer, .pickup-phone, .pickup-table { font-size: 0.85rem; color: #cbd5e1; }
-    .pickup-elapsed { font-size: 0.78rem; color: #64748b; margin-top: 0.4rem; }
-    .pickup-items-count { font-size: 0.75rem; color: #475569; }
+    .pickup-order-num { font-size: 2.2rem; font-weight: 900; color: #38bdf8; line-height: 1; }
+    .ready-order-num  { font-size: 2.4rem; font-weight: 900; color: #10b981; line-height: 1; }
+    .pickup-order-type, .ready-order-type {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        background: rgba(255,255,255,0.06);
+        padding: 0.2rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    .pickup-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+    }
+    .pickup-elapsed { font-size: 0.8rem; color: #f59e0b; font-weight: 700; margin-right: auto; }
+
+    /* Full items box inside pickup cards */
+    .pickup-items-box {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    .pickup-item-line {
+        padding: 0.25rem 0;
+        font-size: 0.95rem;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .pickup-item-line:last-child { border-bottom: none; }
+    .p-qty { font-weight: 900; color: #38bdf8; font-size: 1rem; }
+    .ready-qty { color: #34d399; }
+    .p-name { color: #f8fafc; font-weight: 700; }
+    .p-comment { font-size: 0.78rem; color: #fde047; }
 
     .ready-action { margin-top: 0.75rem; text-align: center; }
-    .focused-hint {
-        display: inline-block;
+    .focused-btn {
+        width: 100%;
         background: #10b981;
         color: #000;
+        border: none;
         border-radius: 8px;
-        padding: 0.3rem 1rem;
-        font-size: 0.85rem;
-        font-weight: 700;
+        padding: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
         animation: pulse-green 1s ease-in-out infinite;
     }
-    .unfocused-hint { font-size: 0.75rem; color: #475569; }
-    @@keyframes pulse-green { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+    .unfocused-btn {
+        background: transparent;
+        border: 1px dashed #334155;
+        color: #64748b;
+        border-radius: 6px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+    @@keyframes pulse-green { 0%,100% { opacity:1; } 50% { opacity:0.75; } }
 
     .pickup-legend {
         display: flex;
@@ -276,6 +387,7 @@
 
 @code {
     [Parameter] public int BranchId { get; set; }
+    [Parameter] public int ScreenId { get; set; }
 
     private List<KdsOrderTicketDto> _preparing = new();
     private List<KdsOrderTicketDto> _ready = new();
@@ -309,19 +421,23 @@
     {
         if (firstRender)
         {
-            try { await _containerRef.FocusAsync(); } catch { }
+            try
+            {
+                await JS.InvokeVoidAsync("kdsFocus.init", _containerRef);
+            }
+            catch { }
         }
     }
 
     private async Task LoadOrders()
     {
-        var all = await KdsService.GetActivePickupOrders(BranchId);
+        var all = await KdsService.GetActivePickupOrders(BranchId, ScreenId);
         SplitOrders(all);
     }
 
     private async Task RefreshOrders()
     {
-        var all = await KdsService.GetActivePickupOrders(BranchId);
+        var all = await KdsService.GetActivePickupOrders(BranchId, ScreenId);
         int newReadyCount = all.Count(o => o.Status == "Ready");
         bool newReady = newReadyCount > _prevReadyCount;
         _prevReadyCount = newReadyCount;

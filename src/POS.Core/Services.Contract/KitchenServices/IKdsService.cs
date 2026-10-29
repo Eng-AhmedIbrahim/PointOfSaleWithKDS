@@ -17,6 +17,6 @@ public interface IKdsService
     Task<bool> RecallKitchenOrderAsync(int orderId);
 
     // Pickup Live Feed
-    Task<List<KdsOrderTicketDto>> GetActivePickupOrdersAsync(int branchId);
+    Task<List<KdsOrderTicketDto>> GetActivePickupOrdersAsync(int branchId, int screenId = 0);
     Task<bool> CompletePickupOrderAsync(int orderId);
 }

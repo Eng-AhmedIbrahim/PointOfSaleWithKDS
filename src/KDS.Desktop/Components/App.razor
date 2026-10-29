@@ -22,7 +22,7 @@
         {
             // Navigate directly to the configured screen — no ScreenSelector UI
             if (KdsConfig.IsPickup)
-                NavManager.NavigateTo($"/pickup/{KdsConfig.BranchId}", replace: true);
+                NavManager.NavigateTo($"/pickup/{KdsConfig.BranchId}/{KdsConfig.ScreenId}", replace: true);
             else
                 NavManager.NavigateTo($"/kitchen/{KdsConfig.BranchId}/{KdsConfig.ScreenId}", replace: true);
         }

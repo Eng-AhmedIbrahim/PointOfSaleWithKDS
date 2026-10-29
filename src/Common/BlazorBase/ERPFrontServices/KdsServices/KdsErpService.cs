@@ -105,11 +105,11 @@ public class KdsErpService : IKdsErpService
         }
     }
 
-    public async Task<List<KdsOrderTicketDto>> GetActivePickupOrders(int branchId = 0)
+    public async Task<List<KdsOrderTicketDto>> GetActivePickupOrders(int branchId = 0, int screenId = 0)
     {
         try
         {
-            var res = await _httpClient.GetFromJsonAsync<List<KdsOrderTicketDto>>($"api/kds/active-pickup?branchId={branchId}");
+            var res = await _httpClient.GetFromJsonAsync<List<KdsOrderTicketDto>>($"api/kds/active-pickup?branchId={branchId}&screenId={screenId}");
             return res ?? new List<KdsOrderTicketDto>();
         }
         catch
