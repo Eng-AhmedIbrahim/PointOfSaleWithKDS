@@ -15,197 +15,197 @@ build_property.EntryPointFilePath =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ERPFront
 build_property.RootNamespace = ERPFront
-build_property.ProjectDir = d:\PointOfSaleProject\src\ERPFront\
+build_property.ProjectDir = E:\PointOfSaleProject_withKDS\src\ERPFront\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = d:\PointOfSaleProject\src\ERPFront
+build_property.MSBuildProjectDirectory = E:\PointOfSaleProject_withKDS\src\ERPFront
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/App.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/App.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Auth/TokenInitializer.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Auth/TokenInitializer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFRva2VuSW5pdGlhbGl6ZXIucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DeliveryComponent/AddNewAddressDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DeliveryComponent/AddNewAddressDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEZWxpdmVyeUNvbXBvbmVudFxBZGROZXdBZGRyZXNzRGlhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DeliveryComponent/DeliveryButtons.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DeliveryComponent/DeliveryButtons.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEZWxpdmVyeUNvbXBvbmVudFxEZWxpdmVyeUJ1dHRvbnMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DeliveryComponent/SelectAddressDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DeliveryComponent/SelectAddressDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEZWxpdmVyeUNvbXBvbmVudFxTZWxlY3RBZGRyZXNzRGlhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DeviceInfo.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DeviceInfo.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEZXZpY2VJbmZvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DineInComponents/MenuButtons.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DineInComponents/MenuButtons.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEaW5lSW5Db21wb25lbnRzXE1lbnVCdXR0b25zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DineInComponents/MergeTables.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DineInComponents/MergeTables.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEaW5lSW5Db21wb25lbnRzXE1lcmdlVGFibGVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DineInComponents/MultipleOrdersDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DineInComponents/MultipleOrdersDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEaW5lSW5Db21wb25lbnRzXE11bHRpcGxlT3JkZXJzRGlhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DineInComponents/SplitOrderDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DineInComponents/SplitOrderDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEaW5lSW5Db21wb25lbnRzXFNwbGl0T3JkZXJEaWFsb2cucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/DineInComponents/TransferTable.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/DineInComponents/TransferTable.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xEaW5lSW5Db21wb25lbnRzXFRyYW5zZmVyVGFibGUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/CommonLayout.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/CommonLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcQ29tbW9uTGF5b3V0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/CulturePicker.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/CulturePicker.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcQ3VsdHVyZVBpY2tlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/WaitingLayout.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/WaitingLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcV2FpdGluZ0xheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/Counter.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/DeliveryPages/Delivery.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/DeliveryPages/Delivery.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEZWxpdmVyeVBhZ2VzXERlbGl2ZXJ5LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/Error.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/POS.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/POS.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQT1MucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/RedirectToLogin.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/RedirectToLogin.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWRpcmVjdFRvTG9naW4ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/Sliders.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/Sliders.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTbGlkZXJzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/TestBoot.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/TestBoot.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xUZXN0Qm9vdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/WaitingPage.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/WaitingPage.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXYWl0aW5nUGFnZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/KayBad.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/KayBad.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcS2F5QmFkLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/Section1.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/Section1.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcU2VjdGlvbjEucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/Section3.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/Section3.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcU2VjdGlvbjMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/Section4Buttons.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/Section4Buttons.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcU2VjdGlvbjRCdXR0b25zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/Section4Table.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/Section4Table.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcU2VjdGlvbjRUYWJsZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosDialog/ItemCommentDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosDialog/ItemCommentDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NEaWFsb2dcSXRlbUNvbW1lbnREaWFsb2cucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosDialog/ItemDiscountDialog.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosDialog/ItemDiscountDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NEaWFsb2dcSXRlbURpc2NvdW50RGlhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/POSLayoutComponents/POSFooterCommponent.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/POSLayoutComponents/POSFooterCommponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQT1NMYXlvdXRDb21wb25lbnRzXFBPU0Zvb3RlckNvbW1wb25lbnQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/POSLayoutComponents/POSNavbarCommponent.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/POSLayoutComponents/POSNavbarCommponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQT1NMYXlvdXRDb21wb25lbnRzXFBPU05hdmJhckNvbW1wb25lbnQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/POSLayoutComponents/SettingsDrawer.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/POSLayoutComponents/SettingsDrawer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQT1NMYXlvdXRDb21wb25lbnRzXFNldHRpbmdzRHJhd2VyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/POSSettingsComponents/FinanceSettingsComponent.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/POSSettingsComponents/FinanceSettingsComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQT1NTZXR0aW5nc0NvbXBvbmVudHNcRmluYW5jZVNldHRpbmdzQ29tcG9uZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/POSSettingsComponents/Section3SettingsComponent.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/POSSettingsComponents/Section3SettingsComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQT1NTZXR0aW5nc0NvbXBvbmVudHNcU2VjdGlvbjNTZXR0aW5nc0NvbXBvbmVudC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Routes.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/_Imports.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/AuthLayout.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/AuthLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcQXV0aExheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-m70uh3nqio
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/MainLayout.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-w1tiydsun5
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/NavBar.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/NavBar.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2QmFyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = b-j71wdzu2l5
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/NavMenu.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-9il8czv7ii
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Layout/PosScreenLayout.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Layout/PosScreenLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcUG9zU2NyZWVuTGF5b3V0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = b-w6kzcwh6wz
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/DineInOrderPages/DineIn.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/DineInOrderPages/DineIn.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEaW5lSW5PcmRlclBhZ2VzXERpbmVJbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-euxwbq0su6
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/Login.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/Login.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-ulb2e0suar
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/NotFound404.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/NotFound404.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZDQwNC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-bm6uni6ksh
 
-[d:/PointOfSaleProject/src/ERPFront/Components/Pages/PrintOrderPage.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/Pages/PrintOrderPage.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xQcmludE9yZGVyUGFnZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-o9yepzmtho
 
-[d:/PointOfSaleProject/src/ERPFront/Components/PosComponent/FinanceComponent.razor]
+[E:/PointOfSaleProject_withKDS/src/ERPFront/Components/PosComponent/FinanceComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQb3NDb21wb25lbnRcRmluYW5jZUNvbXBvbmVudC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-lgdmkl0rgc

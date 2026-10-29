@@ -1,7 +1,6 @@
 @using POS.Contract.Dtos.KitchenDtos
-@using POS.Contract.Dtos.CategoryDtos
-@using BlazorBase.ERPFrontServices.CategoryServices
 @inject ICategoryServices CategoryService
+@inject IItemService ItemService
 @inject ISnackbar Snackbar
 @inject BlazorBase.Services.LocalizationService Localizer
 
@@ -59,9 +58,9 @@
             <MudDivider Class="my-2" />
             <div class="d-flex justify-space-between align-center">
                 <div>
-                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">فلترة الأقسام والأصناف:</MudText>
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">فلترة الأقسام:</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        حدد الأقسام التي تظهر أصنافها على هذه الشاشة (مثل مسارات الطابعات تماماً)
+                        حدد الأقسام التي تظهر أصنافها على هذه الشاشة (مثل مسارات الطابعات)
                     </MudText>
                 </div>
                 <MudButton Size="Size.Small" Variant="MudBlazor.Variant.Text" Color="Color.Primary" OnClick="SelectAllCategories">
@@ -75,7 +74,7 @@
             }
             else
             {
-                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+                <div style="max-height: 140px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
                     <MudGrid Spacing="1">
                         @foreach (var cat in _availableCategories)
                         {
@@ -87,6 +86,56 @@
                                              Dense="true" 
                                              Color="Color.Primary">
                                     <span style="font-size: 0.85rem;">@(cat.ArabicName ?? cat.EnglishName ?? "قسم")</span>
+                                </MudCheckBox>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </div>
+            }
+
+            <!-- Specific Items Filtering -->
+            <MudDivider Class="my-2" />
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">فلترة أصناف محددة بالاسم (اختياري):</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        يمكنك اختيار أصناف معينة بعينها لربطها بالشاشة
+                    </MudText>
+                </div>
+                @if (_selectedItemIds.Any())
+                {
+                    <MudButton Size="Size.Small" Variant="MudBlazor.Variant.Text" Color="Color.Error" OnClick="ClearSelectedItems">
+                        إلغاء تحديد الأصناف (@_selectedItemIds.Count)
+                    </MudButton>
+                }
+            </div>
+
+            <MudTextField @bind-Value="_itemSearchQuery"
+                          Placeholder="ابحث باسم الصنف..."
+                          Variant="MudBlazor.Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Rounded.Search"
+                          Margin="Margin.Dense"
+                          Immediate="true" />
+
+            @if (_isLoadingItems)
+            {
+                <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-2" />
+            }
+            else
+            {
+                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; background: #fafafa;">
+                    <MudGrid Spacing="1">
+                        @foreach (var itm in FilteredAvailableItems)
+                        {
+                            bool isChecked = _selectedItemIds.Contains(itm.Id);
+                            <MudItem xs="6">
+                                <MudCheckBox T="bool"
+                                             Value="isChecked"
+                                             ValueChanged="@((bool val) => ToggleItem(itm.Id, val))"
+                                             Dense="true"
+                                             Color="Color.Secondary">
+                                    <span style="font-size: 0.85rem;">@(itm.ArabicName ?? itm.EnglishName)</span>
                                 </MudCheckBox>
                             </MudItem>
                         }
@@ -117,6 +166,18 @@
     private HashSet<int> _selectedCatIds = new();
     private bool _isLoadingCategories = true;
 
+    private List<MenuSalesItemsToReturnDto> _availableItems = new();
+    private HashSet<int> _selectedItemIds = new();
+    private bool _isLoadingItems = true;
+    private string _itemSearchQuery = "";
+
+    private IEnumerable<MenuSalesItemsToReturnDto> FilteredAvailableItems =>
+        string.IsNullOrWhiteSpace(_itemSearchQuery)
+            ? _availableItems
+            : _availableItems.Where(i => 
+                (i.ArabicName?.Contains(_itemSearchQuery, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (i.EnglishName?.Contains(_itemSearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+
     protected override async Task OnInitializedAsync()
     {
         if (string.IsNullOrEmpty(Screen.ScreenType)) Screen.ScreenType = "Kitchen";
@@ -129,6 +190,16 @@
             {
                 if (int.TryParse(part.Trim(), out int id))
                     _selectedCatIds.Add(id);
+            }
+        }
+
+        // Parse existing selected items
+        if (!string.IsNullOrWhiteSpace(Screen.SelectedItemIds))
+        {
+            foreach (var part in Screen.SelectedItemIds.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(part.Trim(), out int id))
+                    _selectedItemIds.Add(id);
             }
         }
 
@@ -145,12 +216,37 @@
         {
             _isLoadingCategories = false;
         }
+
+        try
+        {
+            var itemRes = await ItemService.GetAllItemsAsync();
+            _availableItems = itemRes?.Data?.ToList() ?? new();
+        }
+        catch
+        {
+            _availableItems = new();
+        }
+        finally
+        {
+            _isLoadingItems = false;
+        }
     }
 
     private void ToggleCategory(int catId, bool isChecked)
     {
         if (isChecked) _selectedCatIds.Add(catId);
         else _selectedCatIds.Remove(catId);
+    }
+
+    private void ToggleItem(int itemId, bool isChecked)
+    {
+        if (isChecked) _selectedItemIds.Add(itemId);
+        else _selectedItemIds.Remove(itemId);
+    }
+
+    private void ClearSelectedItems()
+    {
+        _selectedItemIds.Clear();
     }
 
     private void SelectAllCategories()
@@ -173,15 +269,8 @@
             return;
         }
 
-        if (Screen.ScreenType == "Kitchen")
-        {
-            Screen.SelectedCategoryIds = _selectedCatIds.Any() ? string.Join(",", _selectedCatIds) : null;
-        }
-        else
-        {
-            Screen.SelectedCategoryIds = null;
-            Screen.NumberFilter = "All";
-        }
+        Screen.SelectedCategoryIds = _selectedCatIds.Any() ? string.Join(",", _selectedCatIds) : null;
+        Screen.SelectedItemIds = _selectedItemIds.Any() ? string.Join(",", _selectedItemIds) : null;
 
         MudDialog.Close(DialogResult.Ok(Screen));
     }
