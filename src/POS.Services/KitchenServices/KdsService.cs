@@ -110,6 +110,7 @@ public class KdsService : IKdsService
         // Must NOT be voided or canceled
         var query = _dbContext.Orders
             .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.OrderItemAttributes)
             .Where(o => o.OrderDate >= effectiveDate
                      && o.KitchenOutTime == null
                      && o.OrderState != OrderStates.Voided
@@ -188,7 +189,11 @@ public class KdsService : IKdsService
                     CategoryId = d.CategoryId,
                     CategoryName = d.CategoryName,
                     Comment = d.LineComment,
-                    UnitPrice = d.UnitPrice
+                    UnitPrice = d.UnitPrice,
+                    Attributes = d.OrderItemAttributes?
+                        .Select(a => a.AttributeName)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .ToList() ?? new List<string>()
                 }).ToList()
             };
 
@@ -248,6 +253,7 @@ public class KdsService : IKdsService
         var effectiveDate = await GetEffectivePosDateAsync(branchId);
         var query = _dbContext.Orders
             .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.OrderItemAttributes)
             .Where(o => o.OrderDate >= effectiveDate
                      && o.PackingOutTime == null
                      && o.OrderState != OrderStates.Voided
@@ -326,7 +332,11 @@ public class KdsService : IKdsService
                     CategoryId = d.CategoryId,
                     CategoryName = d.CategoryName,
                     Comment = d.LineComment,
-                    UnitPrice = d.UnitPrice
+                    UnitPrice = d.UnitPrice,
+                    Attributes = d.OrderItemAttributes?
+                        .Select(a => a.AttributeName)
+                        .Where(n => !string.IsNullOrWhiteSpace(n))
+                        .ToList() ?? new List<string>()
                 }).ToList()
             });
         }

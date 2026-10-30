@@ -25,6 +25,7 @@ public class KdsTicketItemDto
     public string? Comment { get; set; }
     public decimal? UnitPrice { get; set; }
     public bool IsCompleted { get; set; }
+    public List<string> Attributes { get; set; } = new();
 }
 
 public class KdsOrderTicketDto

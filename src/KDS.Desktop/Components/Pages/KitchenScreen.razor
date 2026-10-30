@@ -95,8 +95,19 @@
                                 @foreach (var item in ticket.Items)
                                 {
                                     <div class="ticket-item">
-                                        <span class="item-qty">@item.Quantity ×</span>
-                                        <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                        <div class="item-title-line">
+                                            <span class="item-qty">@item.Quantity ×</span>
+                                            <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                        </div>
+                                        @if (item.Attributes != null && item.Attributes.Any())
+                                        {
+                                            <div class="item-attributes">
+                                                @foreach (var attr in item.Attributes)
+                                                {
+                                                    <span class="item-attr-badge">⭐ @attr</span>
+                                                }
+                                            </div>
+                                        }
                                         @if (!string.IsNullOrEmpty(item.Comment))
                                         {
                                             <div class="item-comment">📝 @item.Comment</div>
@@ -320,6 +331,23 @@
         margin-top: 0.15rem;
         padding-right: 1.2rem;
     }
+    .item-attributes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.25rem;
+        padding-right: 1.2rem;
+    }
+    .item-attr-badge {
+        background: #1e3a5f;
+        color: #38bdf8;
+        border: 1px solid #0284c7;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.12rem 0.45rem;
+        border-radius: 4px;
+        line-height: 1.2;
+    }
 
     .ticket-footer {
         padding: 0.5rem 0.75rem;
@@ -439,7 +467,18 @@
 
     private int EstimateTicketHeight(KdsOrderTicketDto ticket)
     {
-        int h = 130 + (ticket.Items?.Count ?? 0) * 32;
+        int h = 130;
+        if (ticket.Items != null)
+        {
+            foreach (var item in ticket.Items)
+            {
+                h += 32;
+                if (item.Attributes != null && item.Attributes.Any())
+                    h += 24;
+                if (!string.IsNullOrEmpty(item.Comment))
+                    h += 20;
+            }
+        }
         if (!string.IsNullOrEmpty(ticket.OrderNotice)) h += 30;
         return h;
     }
