@@ -3,6 +3,7 @@
 @inject IKdsErpService KdsService
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @implements IDisposable
 
 <div class="pickup-container" tabindex="0" @onkeydown="HandleKeyDown" @ref="_containerRef">
@@ -110,7 +111,7 @@
 
                             <!-- Action Button -->
                             <div class="ticket-footer">
-                                @if (isReady)
+                                @if (!_requireKitchenReady || isReady)
                                 {
                                     <button class="btn-deliver" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
                                         ✓ تسليم الطلب (Enter)
@@ -417,9 +418,12 @@
     private System.Timers.Timer? _clockTimer;
     private ElementReference _containerRef;
     private int _prevReadyCount = 0;
+    private bool _requireKitchenReady = false;
 
     protected override async Task OnInitializedAsync()
     {
+        _requireKitchenReady = bool.TryParse(Configuration["KdsSettings:RequireKitchenReadyBeforePickup"], out bool req) && req;
+
         await LoadOrders();
 
         _refreshTimer = new System.Timers.Timer(8_000);
@@ -608,7 +612,7 @@
                 if (_allTickets.Count > 0 && _selectedIndex < _allTickets.Count)
                 {
                     var t = _allTickets[_selectedIndex];
-                    if (t.Status == "Ready")
+                    if (!_requireKitchenReady || t.Status == "Ready")
                         await CompleteOrder(t.OrderId);
                 }
                 break;
