@@ -44,71 +44,75 @@
     }
     else
     {
-        <!-- Ticket Grid -->
-        <div class="kds-grid">
-            @for (int i = 0; i < _tickets.Count; i++)
+        <!-- Columns Layout — Side-by-side with no fixed height -->
+        <div class="kds-columns-container">
+            @foreach (var col in GetColumns())
             {
-                var ticket = _tickets[i];
-                var idx = i;
-                var timerClass = ticket.ElapsedMinutes < 5 ? "timer-green"
-                               : ticket.ElapsedMinutes < 10 ? "timer-yellow"
-                               : "timer-red";
-                <div class="kds-ticket @(idx == _selectedIndex ? "ticket-selected" : "") @timerClass-border"
-                     @onclick="() => SelectAndFocus(idx)">
-                    <!-- Ticket Header -->
-                    <div class="ticket-top">
-                        <div class="order-number">#@ticket.DailyOrderNumber</div>
-                        <div class="@timerClass timer-badge">
-                            ⏱ @FormatElapsed(ticket.ElapsedMinutes)
-                        </div>
-                    </div>
-
-                    <!-- Order Info -->
-                    <div class="ticket-meta">
-                        <div class="order-type-badge">@ticket.OrderTypeName</div>
-                        @if (!string.IsNullOrEmpty(ticket.TableName))
-                        {
-                            <div class="table-badge">طاولة: @ticket.TableName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.WaiterName))
-                        {
-                            <div class="waiter-badge">ويتر: @ticket.WaiterName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
-                        {
-                            <div class="customer-name">@ticket.CustomerName</div>
-                        }
-                    </div>
-
-                    <!-- Order Notice -->
-                    @if (!string.IsNullOrEmpty(ticket.OrderNotice))
+                <div class="kds-column">
+                    @foreach (var ticket in col)
                     {
-                        <div class="order-notice">
-                            ⚠ @ticket.OrderNotice
-                        </div>
-                    }
+                        var idx = _tickets.IndexOf(ticket);
+                        var timerClass = ticket.ElapsedMinutes < 5 ? "timer-green"
+                                       : ticket.ElapsedMinutes < 10 ? "timer-yellow"
+                                       : "timer-red";
+                        <div class="kds-ticket @(idx == _selectedIndex ? "ticket-selected" : "") @timerClass-border"
+                             @onclick="() => SelectAndFocus(idx)">
+                            <!-- Ticket Header -->
+                            <div class="ticket-top">
+                                <div class="order-number">#@ticket.DailyOrderNumber</div>
+                                <div class="@timerClass timer-badge">
+                                    ⏱ @FormatElapsed(ticket.ElapsedMinutes)
+                                </div>
+                            </div>
 
-                    <!-- Items List -->
-                    <div class="ticket-items">
-                        @foreach (var item in ticket.Items)
-                        {
-                            <div class="ticket-item">
-                                <span class="item-qty">@item.Quantity ×</span>
-                                <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
-                                @if (!string.IsNullOrEmpty(item.Comment))
+                            <!-- Order Info -->
+                            <div class="ticket-meta">
+                                <div class="order-type-badge">@ticket.OrderTypeName</div>
+                                @if (!string.IsNullOrEmpty(ticket.TableName))
                                 {
-                                    <div class="item-comment">📝 @item.Comment</div>
+                                    <div class="table-badge">طاولة: @ticket.TableName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ticket.WaiterName))
+                                {
+                                    <div class="waiter-badge">ويتر: @ticket.WaiterName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                                {
+                                    <div class="customer-name">@ticket.CustomerName</div>
                                 }
                             </div>
-                        }
-                    </div>
 
-                    <!-- Bump Button -->
-                    <div class="ticket-footer">
-                        <button class="btn-bump" @onclick="() => BumpOrder(ticket.OrderId)" @onclick:stopPropagation="true">
-                            ✓ إنهاء وتحضير (Enter)
-                        </button>
-                    </div>
+                            <!-- Order Notice -->
+                            @if (!string.IsNullOrEmpty(ticket.OrderNotice))
+                            {
+                                <div class="order-notice">
+                                    ⚠ @ticket.OrderNotice
+                                </div>
+                            }
+
+                            <!-- Items List -->
+                            <div class="ticket-items">
+                                @foreach (var item in ticket.Items)
+                                {
+                                    <div class="ticket-item">
+                                        <span class="item-qty">@item.Quantity ×</span>
+                                        <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                        @if (!string.IsNullOrEmpty(item.Comment))
+                                        {
+                                            <div class="item-comment">📝 @item.Comment</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Bump Button -->
+                            <div class="ticket-footer">
+                                <button class="btn-bump" @onclick="() => BumpOrder(ticket.OrderId)" @onclick:stopPropagation="true">
+                                    ✓ إنهاء وتحضير (Enter)
+                                </button>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -205,16 +209,21 @@
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
 
-    .kds-grid {
+    .kds-columns-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-        grid-auto-rows: 8px;
-        grid-auto-flow: dense;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 0.75rem;
         padding: 0.75rem;
         overflow-y: auto;
         flex: 1;
         align-content: start;
+    }
+
+    .kds-column {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-width: 0;
     }
 
     .kds-ticket {
@@ -223,7 +232,9 @@
         border-radius: 12px;
         display: flex;
         flex-direction: column;
-        grid-row-end: span 20;
+        height: fit-content;
+        width: 100%;
+        box-sizing: border-box;
         transition: transform 0.15s, border-color 0.15s;
         cursor: pointer;
     }
@@ -384,17 +395,51 @@
                 await JS.InvokeVoidAsync("kdsFocus.init", _containerRef);
             }
             catch { }
-            try
-            {
-                await JS.InvokeVoidAsync("kdsMasonry.init");
-            }
-            catch { }
         }
-        try
+    }
+
+    private const int ColumnCount = 5;
+
+    private List<List<KdsOrderTicketDto>> GetColumns()
+    {
+        var cols = new List<List<KdsOrderTicketDto>>();
+        for (int i = 0; i < ColumnCount; i++)
+            cols.Add(new List<KdsOrderTicketDto>());
+
+        if (_tickets == null || _tickets.Count == 0)
+            return cols;
+
+        var heights = new int[ColumnCount];
+
+        // 1. Distribute first N tickets into the N columns across the row (RTL)
+        int firstBatch = Math.Min(ColumnCount, _tickets.Count);
+        for (int i = 0; i < firstBatch; i++)
         {
-            await JS.InvokeVoidAsync("kdsMasonry.update");
+            cols[i].Add(_tickets[i]);
+            heights[i] += EstimateTicketHeight(_tickets[i]);
         }
-        catch { }
+
+        // 2. For each subsequent ticket, find the column with the minimum height
+        for (int i = firstBatch; i < _tickets.Count; i++)
+        {
+            int minCol = 0;
+            for (int c = 1; c < ColumnCount; c++)
+            {
+                if (heights[c] < heights[minCol])
+                    minCol = c;
+            }
+            cols[minCol].Add(_tickets[i]);
+            heights[minCol] += EstimateTicketHeight(_tickets[i]);
+        }
+
+        return cols;
+    }
+
+    private int EstimateTicketHeight(KdsOrderTicketDto ticket)
+    {
+        int h = 130 + (ticket.Items?.Count ?? 0) * 32;
+        if (!string.IsNullOrEmpty(ticket.OrderNotice)) h += 30;
+        return h;
     }
 
     private async Task LoadTickets()

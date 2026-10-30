@@ -45,69 +45,73 @@
     }
     else
     {
-        <!-- Ticket Grid — Ready first, then Preparing -->
-        <div class="pickup-grid">
-            @for (int i = 0; i < _allTickets.Count; i++)
+        <!-- Columns Layout — Side-by-side with no fixed height -->
+        <div class="pickup-columns-container">
+            @foreach (var col in GetColumns())
             {
-                var ticket = _allTickets[i];
-                var idx = i;
-                bool isReady = ticket.Status == "Ready";
-                <div class="pickup-ticket @(isReady ? "ticket-ready" : "ticket-preparing") @(idx == _selectedIndex ? "ticket-selected" : "")"
-                     @onclick="() => SelectAndFocus(idx)">
-                    <!-- Ticket Header -->
-                    <div class="ticket-top">
-                        <div class="order-num @(isReady ? "num-ready" : "num-preparing")">#@ticket.DailyOrderNumber</div>
-                        <div class="status-badge @(isReady ? "badge-ready" : "badge-preparing")">
-                            @(isReady ? "✅ جاهز" : "🍳 يُحضَّر")
-                        </div>
-                    </div>
+                <div class="pickup-column">
+                    @foreach (var ticket in col)
+                    {
+                        var idx = _allTickets.IndexOf(ticket);
+                        bool isReady = ticket.Status == "Ready";
+                        <div class="pickup-ticket @(isReady ? "ticket-ready" : "ticket-preparing") @(idx == _selectedIndex ? "ticket-selected" : "")"
+                             @onclick="() => SelectAndFocus(idx)">
+                            <!-- Ticket Header -->
+                            <div class="ticket-top">
+                                <div class="order-num @(isReady ? "num-ready" : "num-preparing")">#@ticket.DailyOrderNumber</div>
+                                <div class="status-badge @(isReady ? "badge-ready" : "badge-preparing")">
+                                    @(isReady ? "✅ جاهز" : "🍳 يُحضَّر")
+                                </div>
+                            </div>
 
-                    <!-- Order Info -->
-                    <div class="ticket-meta">
-                        <div class="order-type-badge @(isReady ? "type-ready" : "type-preparing")">@ticket.OrderTypeName</div>
-                        @if (!string.IsNullOrEmpty(ticket.TableName))
-                        {
-                            <div class="table-badge">طاولة: @ticket.TableName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerName))
-                        {
-                            <div class="customer-name">👤 @ticket.CustomerName</div>
-                        }
-                        @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
-                        {
-                            <div class="phone-badge">📞 @ticket.CustomerPhone</div>
-                        }
-                        <div class="elapsed-badge">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
-                    </div>
-
-                    <!-- Items List -->
-                    <div class="ticket-items">
-                        @foreach (var item in ticket.Items)
-                        {
-                            <div class="ticket-item">
-                                <span class="item-qty @(isReady ? "qty-ready" : "qty-preparing")">@item.Quantity ×</span>
-                                <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
-                                @if (!string.IsNullOrEmpty(item.Comment))
+                            <!-- Order Info -->
+                            <div class="ticket-meta">
+                                <div class="order-type-badge @(isReady ? "type-ready" : "type-preparing")">@ticket.OrderTypeName</div>
+                                @if (!string.IsNullOrEmpty(ticket.TableName))
                                 {
-                                    <div class="item-comment">📝 @item.Comment</div>
+                                    <div class="table-badge">طاولة: @ticket.TableName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ticket.CustomerName))
+                                {
+                                    <div class="customer-name">👤 @ticket.CustomerName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ticket.CustomerPhone))
+                                {
+                                    <div class="phone-badge">📞 @ticket.CustomerPhone</div>
+                                }
+                                <div class="elapsed-badge">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
+                            </div>
+
+                            <!-- Items List -->
+                            <div class="ticket-items">
+                                @foreach (var item in ticket.Items)
+                                {
+                                    <div class="ticket-item">
+                                        <span class="item-qty @(isReady ? "qty-ready" : "qty-preparing")">@item.Quantity ×</span>
+                                        <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
+                                        @if (!string.IsNullOrEmpty(item.Comment))
+                                        {
+                                            <div class="item-comment">📝 @item.Comment</div>
+                                        }
+                                    </div>
                                 }
                             </div>
-                        }
-                    </div>
 
-                    <!-- Action Button -->
-                    <div class="ticket-footer">
-                        @if (isReady)
-                        {
-                            <button class="btn-deliver" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
-                                ✓ تسليم الطلب (Enter)
-                            </button>
-                        }
-                        else
-                        {
-                            <div class="btn-waiting">⏳ في انتظار التحضير...</div>
-                        }
-                    </div>
+                            <!-- Action Button -->
+                            <div class="ticket-footer">
+                                @if (isReady)
+                                {
+                                    <button class="btn-deliver" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
+                                        ✓ تسليم الطلب (Enter)
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="btn-waiting">⏳ في انتظار التحضير...</div>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -207,12 +211,9 @@
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Grid — same pattern as kitchen */
-    .pickup-grid {
+    .pickup-columns-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-        grid-auto-rows: 8px;
-        grid-auto-flow: dense;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 0.75rem;
         padding: 0.75rem;
         overflow-y: auto;
@@ -220,12 +221,21 @@
         align-content: start;
     }
 
+    .pickup-column {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-width: 0;
+    }
+
     /* Base card */
     .pickup-ticket {
         border-radius: 12px;
         display: flex;
         flex-direction: column;
-        grid-row-end: span 20;
+        height: fit-content;
+        width: 100%;
+        box-sizing: border-box;
         transition: transform 0.15s, border-color 0.15s;
         cursor: pointer;
     }
@@ -395,9 +405,49 @@
         if (firstRender)
         {
             try { await JS.InvokeVoidAsync("kdsFocus.init", _containerRef); } catch { }
-            try { await JS.InvokeVoidAsync("kdsMasonry.init"); } catch { }
         }
-        try { await JS.InvokeVoidAsync("kdsMasonry.update"); } catch { }
+    }
+
+    private const int ColumnCount = 5;
+
+    private List<List<KdsOrderTicketDto>> GetColumns()
+    {
+        var cols = new List<List<KdsOrderTicketDto>>();
+        for (int i = 0; i < ColumnCount; i++)
+            cols.Add(new List<KdsOrderTicketDto>());
+
+        if (_allTickets == null || _allTickets.Count == 0)
+            return cols;
+
+        var heights = new int[ColumnCount];
+
+        // 1. Distribute first N tickets into the N columns across the row (RTL)
+        int firstBatch = Math.Min(ColumnCount, _allTickets.Count);
+        for (int i = 0; i < firstBatch; i++)
+        {
+            cols[i].Add(_allTickets[i]);
+            heights[i] += EstimateTicketHeight(_allTickets[i]);
+        }
+
+        // 2. For each subsequent ticket, find the column with the minimum height
+        for (int i = firstBatch; i < _allTickets.Count; i++)
+        {
+            int minCol = 0;
+            for (int c = 1; c < ColumnCount; c++)
+            {
+                if (heights[c] < heights[minCol])
+                    minCol = c;
+            }
+            cols[minCol].Add(_allTickets[i]);
+            heights[minCol] += EstimateTicketHeight(_allTickets[i]);
+        }
+
+        return cols;
+    }
+
+    private int EstimateTicketHeight(KdsOrderTicketDto ticket)
+    {
+        return 130 + (ticket.Items?.Count ?? 0) * 32;
     }
 
     private async Task LoadOrders()
