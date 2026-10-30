@@ -109,6 +109,9 @@ try
         -- 7. Fallback: Add ScreenEnglishName if still missing after rename
         IF COL_LENGTH('Permissions', 'ScreenEnglishName') IS NULL
             ALTER TABLE Permissions ADD ScreenEnglishName nvarchar(max) NOT NULL DEFAULT '';
+    ");
+
+    await identityDbContext.Database.ExecuteSqlRawAsync(@"
 
         -- Ensure new void & edit permissions are in Permissions table
         IF NOT EXISTS (SELECT 1 FROM Permissions WHERE Name = 'CanAccessDeliveryVoidBtn')
