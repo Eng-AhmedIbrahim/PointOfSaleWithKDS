@@ -15,7 +15,11 @@
             </div>
         </div>
         <div class="pickup-header-center">
-            <span class="ready-count">@_ready.Count جاهز للاستلام</span>
+            <span class="ready-count">✅ @_ready.Count جاهز</span>
+            @if (_preparing.Count > 0)
+            {
+                <span class="preparing-count">🍳 @_preparing.Count قيد التحضير</span>
+            }
         </div>
         <div class="pickup-header-left">
             <div class="pickup-clock">@_currentTime.ToString("hh:mm:ss tt")</div>
@@ -31,33 +35,36 @@
             <div style="color:#64748b;margin-top:1rem;">جاري التحميل...</div>
         </div>
     }
-    else if (_ready.Count == 0)
+    else if (_allTickets.Count == 0)
     {
         <div class="pickup-center">
             <div style="font-size:4rem;">🎉</div>
-            <div style="color:#10b981;font-size:1.5rem;font-weight:700;margin-top:1rem;">لا توجد طلبات جاهزة حالياً</div>
-            <div style="color:#64748b;margin-top:0.5rem;">الطلبات الجاهزة ستظهر هنا تلقائياً</div>
+            <div style="color:#10b981;font-size:1.5rem;font-weight:700;margin-top:1rem;">لا توجد طلبات حالياً</div>
+            <div style="color:#64748b;margin-top:0.5rem;">الطلبات ستظهر هنا تلقائياً</div>
         </div>
     }
     else
     {
-        <!-- Ticket Grid -->
+        <!-- Ticket Grid — Ready first, then Preparing -->
         <div class="pickup-grid">
-            @for (int i = 0; i < _ready.Count; i++)
+            @for (int i = 0; i < _allTickets.Count; i++)
             {
-                var ticket = _ready[i];
+                var ticket = _allTickets[i];
                 var idx = i;
-                <div class="pickup-ticket @(idx == _selectedIndex ? "ticket-selected" : "")"
+                bool isReady = ticket.Status == "Ready";
+                <div class="pickup-ticket @(isReady ? "ticket-ready" : "ticket-preparing") @(idx == _selectedIndex ? "ticket-selected" : "")"
                      @onclick="() => SelectAndFocus(idx)">
                     <!-- Ticket Header -->
                     <div class="ticket-top">
-                        <div class="ready-order-num">#@ticket.DailyOrderNumber</div>
-                        <div class="elapsed-badge">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
+                        <div class="order-num @(isReady ? "num-ready" : "num-preparing")">#@ticket.DailyOrderNumber</div>
+                        <div class="status-badge @(isReady ? "badge-ready" : "badge-preparing")">
+                            @(isReady ? "✅ جاهز" : "🍳 يُحضَّر")
+                        </div>
                     </div>
 
                     <!-- Order Info -->
                     <div class="ticket-meta">
-                        <div class="order-type-badge">@ticket.OrderTypeName</div>
+                        <div class="order-type-badge @(isReady ? "type-ready" : "type-preparing")">@ticket.OrderTypeName</div>
                         @if (!string.IsNullOrEmpty(ticket.TableName))
                         {
                             <div class="table-badge">طاولة: @ticket.TableName</div>
@@ -70,6 +77,7 @@
                         {
                             <div class="phone-badge">📞 @ticket.CustomerPhone</div>
                         }
+                        <div class="elapsed-badge">⏱ @FormatElapsed(ticket.ElapsedMinutes)</div>
                     </div>
 
                     <!-- Items List -->
@@ -77,7 +85,7 @@
                         @foreach (var item in ticket.Items)
                         {
                             <div class="ticket-item">
-                                <span class="item-qty">@item.Quantity ×</span>
+                                <span class="item-qty @(isReady ? "qty-ready" : "qty-preparing")">@item.Quantity ×</span>
                                 <span class="item-name">@(item.ItemNameAr ?? item.ItemName)</span>
                                 @if (!string.IsNullOrEmpty(item.Comment))
                                 {
@@ -87,11 +95,18 @@
                         }
                     </div>
 
-                    <!-- Deliver Button -->
+                    <!-- Action Button -->
                     <div class="ticket-footer">
-                        <button class="btn-deliver" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
-                            ✓ تسليم الطلب (Enter)
-                        </button>
+                        @if (isReady)
+                        {
+                            <button class="btn-deliver" @onclick="() => CompleteOrder(ticket.OrderId)" @onclick:stopPropagation="true">
+                                ✓ تسليم الطلب (Enter)
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="btn-waiting">⏳ في انتظار التحضير...</div>
+                        }
                     </div>
                 </div>
             }
@@ -137,6 +152,11 @@
         align-items: center;
         gap: 1rem;
     }
+    .pickup-header-center {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
     .pickup-title {
         font-size: 1.3rem;
         font-weight: 800;
@@ -153,6 +173,14 @@
         font-weight: 700;
         font-size: 0.95rem;
     }
+    .preparing-count {
+        background: #1e3a5f;
+        color: #93c5fd;
+        padding: 0.3rem 0.9rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
     .pickup-clock {
         font-size: 1.3rem;
         font-weight: 700;
@@ -162,7 +190,6 @@
     }
     .pickup-branch { font-size: 0.75rem; color: #64748b; }
 
-    /* Center empty/loading state */
     .pickup-center {
         display: flex;
         flex-direction: column;
@@ -191,21 +218,40 @@
         align-content: start;
     }
 
+    /* Base card */
     .pickup-ticket {
-        background: #0d2818;
-        border: 2px solid #065f46;
-        border-top: 5px solid #10b981;
         border-radius: 12px;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         transition: transform 0.15s, border-color 0.15s;
         cursor: pointer;
     }
-    .ticket-selected {
+
+    /* Ready card — green */
+    .ticket-ready {
+        background: #0d2818;
+        border: 2px solid #065f46;
+        border-top: 5px solid #10b981;
+    }
+
+    /* Preparing card — blue/dark */
+    .ticket-preparing {
+        background: #0f1c2e;
+        border: 2px solid #1e3a5f;
+        border-top: 5px solid #3b82f6;
+    }
+
+    /* Selected highlight */
+    .ticket-selected.ticket-ready {
         outline: 3px solid #34d399;
         transform: scale(1.02);
         box-shadow: 0 0 24px rgba(52, 211, 153, 0.45);
+        z-index: 10;
+    }
+    .ticket-selected.ticket-preparing {
+        outline: 3px solid #60a5fa;
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.35);
         z-index: 10;
     }
 
@@ -215,15 +261,18 @@
         align-items: center;
         padding: 0.6rem 0.75rem 0.3rem;
     }
-    .ready-order-num { font-size: 2.2rem; font-weight: 900; color: #10b981; line-height: 1; }
-    .elapsed-badge {
-        font-size: 0.85rem;
+    .order-num { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+    .num-ready     { color: #10b981; }
+    .num-preparing { color: #60a5fa; }
+
+    .status-badge {
+        font-size: 0.82rem;
         font-weight: 700;
-        color: #f59e0b;
-        background: rgba(245,158,11,0.12);
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
     }
+    .badge-ready     { background: #065f46; color: #34d399; }
+    .badge-preparing { background: #1e3a5f; color: #93c5fd; }
 
     .ticket-meta {
         display: flex;
@@ -231,24 +280,19 @@
         gap: 0.35rem;
         padding: 0 0.75rem 0.4rem;
         font-size: 0.78rem;
+        align-items: center;
     }
-    .order-type-badge {
-        background: #064e3b;
-        color: #6ee7b7;
-        padding: 0.15rem 0.45rem;
-        border-radius: 4px;
-        font-weight: 700;
-    }
+    .order-type-badge { padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; }
+    .type-ready     { background: #064e3b; color: #6ee7b7; }
+    .type-preparing { background: #172554; color: #93c5fd; }
     .table-badge  { background: #14532d; color: #4ade80; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700; }
     .customer-name { color: #94a3b8; padding: 0.15rem 0; font-weight: 600; }
-    .phone-badge { color: #7dd3fc; padding: 0.15rem 0; font-weight: 600; }
+    .phone-badge   { color: #7dd3fc; padding: 0.15rem 0; font-weight: 600; }
+    .elapsed-badge { font-size: 0.8rem; font-weight: 700; color: #f59e0b; margin-right: auto; }
 
     .ticket-items {
-        flex: 1;
         padding: 0.4rem 0.75rem;
-        overflow-y: auto;
-        max-height: 240px;
-        border-top: 1px solid #064e3b;
+        border-top: 1px solid #1f2937;
     }
     .ticket-item {
         padding: 0.35rem 0;
@@ -257,15 +301,19 @@
         line-height: 1.3;
     }
     .ticket-item:last-child { border-bottom: none; }
-    .item-qty  { font-weight: 900; color: #34d399; margin-left: 0.4rem; font-size: 1.05rem; }
-    .item-name { color: #f1f5f9; font-weight: 700; }
+    .item-qty     { font-weight: 900; margin-left: 0.4rem; font-size: 1.05rem; }
+    .qty-ready     { color: #34d399; }
+    .qty-preparing { color: #60a5fa; }
+    .item-name    { color: #f1f5f9; font-weight: 700; }
     .item-comment { font-size: 0.75rem; color: #fbbf24; margin-top: 0.15rem; padding-right: 1.2rem; }
 
     .ticket-footer {
         padding: 0.5rem 0.75rem;
-        background: #022c22;
-        border-top: 1px solid #064e3b;
+        border-top: 1px solid #1f2937;
     }
+    .ticket-ready .ticket-footer   { background: #022c22; }
+    .ticket-preparing .ticket-footer { background: #0c1a2e; }
+
     .btn-deliver {
         width: 100%;
         background: #10b981;
@@ -281,6 +329,13 @@
     }
     .btn-deliver:hover { background: #059669; color: #fff; animation: none; }
     @@keyframes pulse-green { 0%,100% { opacity:1; } 50% { opacity:0.78; } }
+
+    .btn-waiting {
+        text-align: center;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 0.35rem 0;
+    }
 
     .pickup-legend {
         display: flex;
@@ -302,7 +357,9 @@
     [Parameter] public int BranchId { get; set; }
     [Parameter] public int ScreenId { get; set; }
 
-    private List<KdsOrderTicketDto> _ready = new();
+    private List<KdsOrderTicketDto> _allTickets = new();
+    private List<KdsOrderTicketDto> _ready      = new();
+    private List<KdsOrderTicketDto> _preparing  = new();
     private int _selectedIndex = 0;
     private bool _isLoading = true;
     private DateTime _currentTime = DateTime.Now;
@@ -343,27 +400,36 @@
     {
         _isLoading = true;
         var all = await KdsService.GetActivePickupOrders(BranchId, ScreenId);
-        _ready = all.Where(o => o.Status == "Ready").ToList();
-        _prevReadyCount = _ready.Count;
+        ApplyOrders(all);
         _isLoading = false;
-        if (_selectedIndex >= _ready.Count)
-            _selectedIndex = Math.Max(0, _ready.Count - 1);
+        if (_selectedIndex >= _allTickets.Count)
+            _selectedIndex = Math.Max(0, _allTickets.Count - 1);
     }
 
     private async Task RefreshOrders()
     {
         var all = await KdsService.GetActivePickupOrders(BranchId, ScreenId);
-        var newReady = all.Where(o => o.Status == "Ready").ToList();
-        bool hasNew = newReady.Count > _prevReadyCount;
-        _prevReadyCount = newReady.Count;
-        _ready = newReady;
-        if (_selectedIndex >= _ready.Count)
-            _selectedIndex = Math.Max(0, _ready.Count - 1);
-        if (hasNew)
+        int newReadyCount = all.Count(o => o.Status == "Ready");
+        bool chime = newReadyCount > _prevReadyCount;
+        ApplyOrders(all);
+        if (_selectedIndex >= _allTickets.Count)
+            _selectedIndex = Math.Max(0, _allTickets.Count - 1);
+        if (chime)
         {
             try { await JS.InvokeVoidAsync("kdsAudio.playReadyChime"); } catch { }
         }
         await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Builds _allTickets: Ready orders first (sorted by OrderDate), then Preparing orders.
+    /// </summary>
+    private void ApplyOrders(List<KdsOrderTicketDto> all)
+    {
+        _ready     = all.Where(o => o.Status == "Ready")    .OrderBy(o => o.OrderDate).ToList();
+        _preparing = all.Where(o => o.Status == "Preparing").OrderBy(o => o.OrderDate).ToList();
+        _allTickets = _ready.Concat(_preparing).ToList();
+        _prevReadyCount = _ready.Count;
     }
 
     private async Task CompleteOrder(int orderId)
@@ -390,34 +456,38 @@
                 break;
             case "ArrowLeft":
             case "ArrowDown":
-                _selectedIndex = Math.Min(_ready.Count - 1, _selectedIndex + 1);
+                _selectedIndex = Math.Min(_allTickets.Count - 1, _selectedIndex + 1);
                 StateHasChanged();
                 break;
             case "Tab":
-                if (_ready.Count > 0)
+                if (_allTickets.Count > 0)
                 {
-                    _selectedIndex = (_selectedIndex + 1) % _ready.Count;
+                    _selectedIndex = (_selectedIndex + 1) % _allTickets.Count;
                     StateHasChanged();
                 }
                 break;
             case "Enter":
             case " ":
-                if (_ready.Count > 0 && _selectedIndex < _ready.Count)
-                    await CompleteOrder(_ready[_selectedIndex].OrderId);
+                if (_allTickets.Count > 0 && _selectedIndex < _allTickets.Count)
+                {
+                    var t = _allTickets[_selectedIndex];
+                    if (t.Status == "Ready")
+                        await CompleteOrder(t.OrderId);
+                }
                 break;
             case "Home":
                 _selectedIndex = 0;
                 StateHasChanged();
                 break;
             case "End":
-                _selectedIndex = Math.Max(0, _ready.Count - 1);
+                _selectedIndex = Math.Max(0, _allTickets.Count - 1);
                 StateHasChanged();
                 break;
             default:
                 if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
                 {
                     int target = int.Parse(e.Key) - 1;
-                    if (target >= 0 && target < _ready.Count)
+                    if (target >= 0 && target < _allTickets.Count)
                     {
                         _selectedIndex = target;
                         StateHasChanged();
