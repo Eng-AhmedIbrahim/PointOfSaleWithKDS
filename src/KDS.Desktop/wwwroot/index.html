@@ -101,6 +101,30 @@
                 }
             }
         };
+
+        // Smooth scrolling helper for PageUp/PageDown and Auto-scrolling to selected ticket
+        window.kdsScroll = {
+            scrollToSelected: function () {
+                setTimeout(() => {
+                    const selected = document.querySelector('.ticket-selected');
+                    if (selected) {
+                        selected.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }
+                }, 40);
+            },
+            pageDown: function () {
+                const container = document.querySelector('.kds-columns-container, .pickup-columns-container');
+                if (container) {
+                    container.scrollBy({ top: 350, behavior: 'smooth' });
+                }
+            },
+            pageUp: function () {
+                const container = document.querySelector('.kds-columns-container, .pickup-columns-container');
+                if (container) {
+                    container.scrollBy({ top: -350, behavior: 'smooth' });
+                }
+            }
+        };
     </script>
 </body>
 </html>

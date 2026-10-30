@@ -121,9 +121,11 @@
     <div class="pickup-legend">
         <span class="shortcut">Enter / المسافة: تسليم المحدد</span>
         <span class="sep">|</span>
-        <span class="shortcut">الأسهم: التنقل</span>
+        <span class="shortcut">الأسهم: التنقل التلقائي</span>
         <span class="sep">|</span>
-        <span class="shortcut">Home / End: أول / آخر</span>
+        <span class="shortcut">PageUp / PageDown: تحريك الشاشة</span>
+        <span class="sep">|</span>
+        <span class="shortcut">Esc: إغلاق</span>
         <span class="sep">|</span>
         <span class="shortcut">تحديث تلقائي كل 8 ثوان</span>
     </div>
@@ -493,10 +495,32 @@
         StateHasChanged();
     }
 
-    private void SelectAndFocus(int idx)
+    private async Task SelectAndFocus(int idx)
     {
         _selectedIndex = idx;
         StateHasChanged();
+        await ScrollSelectedIntoView();
+    }
+
+    private async Task ScrollSelectedIntoView()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("kdsScroll.scrollToSelected");
+        }
+        catch { }
+    }
+
+    private void CloseScreen()
+    {
+        try
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            {
+                System.Windows.Application.Current.MainWindow?.Close();
+            });
+        }
+        catch { }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -507,18 +531,30 @@
             case "ArrowUp":
                 _selectedIndex = Math.Max(0, _selectedIndex - 1);
                 StateHasChanged();
+                await ScrollSelectedIntoView();
                 break;
             case "ArrowLeft":
             case "ArrowDown":
                 _selectedIndex = Math.Min(_allTickets.Count - 1, _selectedIndex + 1);
                 StateHasChanged();
+                await ScrollSelectedIntoView();
                 break;
             case "Tab":
                 if (_allTickets.Count > 0)
                 {
                     _selectedIndex = (_selectedIndex + 1) % _allTickets.Count;
                     StateHasChanged();
+                    await ScrollSelectedIntoView();
                 }
+                break;
+            case "PageUp":
+                await JS.InvokeVoidAsync("kdsScroll.pageUp");
+                break;
+            case "PageDown":
+                await JS.InvokeVoidAsync("kdsScroll.pageDown");
+                break;
+            case "Escape":
+                CloseScreen();
                 break;
             case "Enter":
             case " ":
@@ -532,10 +568,12 @@
             case "Home":
                 _selectedIndex = 0;
                 StateHasChanged();
+                await ScrollSelectedIntoView();
                 break;
             case "End":
                 _selectedIndex = Math.Max(0, _allTickets.Count - 1);
                 StateHasChanged();
+                await ScrollSelectedIntoView();
                 break;
             default:
                 if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
@@ -545,6 +583,7 @@
                     {
                         _selectedIndex = target;
                         StateHasChanged();
+                        await ScrollSelectedIntoView();
                     }
                 }
                 break;
