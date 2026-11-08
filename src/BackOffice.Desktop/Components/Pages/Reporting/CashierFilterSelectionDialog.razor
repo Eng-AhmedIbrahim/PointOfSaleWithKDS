@@ -1,0 +1,123 @@
+﻿@inject BlazorBase.ERPFrontServices.ReportingServices.IReportingErpService ReportingService
+@inject BlazorBase.Services.LocalizationService Localizer
+
+<MudDialog Class="rounded-xl overflow-hidden shadow-xl" Style="min-width: 420px;">
+    <TitleContent>
+        <div class="pa-4 text-white d-flex align-center gap-3" style="background-color: @GetHeaderColorHex();">
+            <MudIcon Icon="@Icons.Material.Rounded.FilterAlt" />
+            <MudText Typo="Typo.h6" Style="font-weight: 800;">
+                @(string.IsNullOrWhiteSpace(Title) ? (IsArabic ? "تصفية التقرير حسب الكاشير" : "Filter Report by Cashier") : Title)
+            </MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div class="pa-4">
+            <MudText Typo="Typo.subtitle2" Class="mb-3 text-muted">
+                @(string.IsNullOrWhiteSpace(Subtitle) ? (IsArabic ? "اختر الكاشير لعرض عملياته أو اختر 'الكل' لعرض جميع الكاشيرية:" : "Select a cashier to filter their transactions, or choose 'All':") : Subtitle)
+            </MudText>
+
+            @if (_isLoading)
+            {
+                <div class="d-flex justify-center my-4">
+                    <MudProgressCircular Size="MudBlazor.Size.Medium" Color="@HeaderColor" Indeterminate="true" />
+                </div>
+            }
+            else
+            {
+                <MudSelect T="string" Label="@(IsArabic ? "الكاشير" : "Cashier")" @bind-Value="_selectedCashierId"
+                           Variant="MudBlazor.Variant.Outlined" Class="rounded-lg mb-4"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="string" Value="@("All")">
+                        @(IsArabic ? "الكل (جميع الكاشيرية)" : "All Cashiers")
+                    </MudSelectItem>
+                    @if (_cashiers != null)
+                    {
+                        @foreach (var c in _cashiers)
+                        {
+                            <MudSelectItem T="string" Value="@c.Id">@c.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div class="pa-4 w-100 d-flex gap-2">
+            <MudButton OnClick="Cancel" Variant="MudBlazor.Variant.Text" Class="rounded-pill flex-1">
+                @(IsArabic ? "إلغاء" : "Cancel")
+            </MudButton>
+            <MudButton Color="@HeaderColor" OnClick="Submit" Variant="MudBlazor.Variant.Filled"
+                       Class="rounded-pill flex-2" DisableElevation="true">
+                @(IsArabic ? "عرض التقرير" : "Show Report")
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public DateTime SelectedDate { get; set; } = DateTime.Today;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public Color HeaderColor { get; set; } = Color.Primary;
+
+    private string _selectedCashierId = "All";
+    private List<AccountSummaryDto>? _cashiers;
+    private bool _isLoading = false;
+    private bool IsArabic => Localizer.GetCurrentLanguage() == "ar";
+
+    private string GetHeaderColorHex()
+    {
+        return HeaderColor switch
+        {
+            Color.Error => "#ef4444",
+            Color.Warning => "#f59e0b",
+            Color.Success => "#10b981",
+            Color.Info => "#0ea5e9",
+            Color.Secondary => "#8b5cf6",
+            _ => "#1e3a5f"
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var summaries = await ReportingService.GetAccountsSummary(SelectedDate, "Cashier");
+            _cashiers = summaries?
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name) && s.Id != "All")
+                .GroupBy(s => s.Name)
+                .Select(g => g.First())
+                .ToList() ?? new List<AccountSummaryDto>();
+        }
+        catch
+        {
+            _cashiers = new List<AccountSummaryDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Submit()
+    {
+        string cName = "All";
+        if (_selectedCashierId != "All" && _cashiers != null)
+        {
+            var found = _cashiers.FirstOrDefault(c => c.Id == _selectedCashierId);
+            cName = found?.Name ?? _selectedCashierId;
+        }
+
+        var result = new Dictionary<string, string>
+        {
+            ["CashierId"] = _selectedCashierId,
+            ["CashierName"] = cName
+        };
+
+        MudDialog.Close(DialogResult.Ok(result));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

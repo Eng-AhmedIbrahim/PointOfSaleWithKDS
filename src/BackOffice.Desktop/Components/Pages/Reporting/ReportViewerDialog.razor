@@ -1,4 +1,4 @@
-@inject IReportingErpService ReportingService
+﻿@inject IReportingErpService ReportingService
 @inject IDesktopPrintingService PrintingService
 @inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
@@ -108,7 +108,8 @@
     private byte[]? _pdfBytes;
     private string? _blobUrl;
     private bool _isLoading = true;
-    private string _printerType = "Thermal";
+    [Parameter] public string InitialPrinterType { get; set; } = "A4";
+    private string _printerType = "A4";
     private string _reportLang = "ar";
     private string? _cashierPrinterName;
 
@@ -130,6 +131,7 @@
     {
         _reportLang = LocalizerService.GetCurrentLanguage() == "en" ? "en" : "ar";
         _cashierPrinterName = await LocalStorage.GetItemAsync<string>("cashier_printer_name");
+        _printerType = string.IsNullOrEmpty(InitialPrinterType) ? "A4" : InitialPrinterType;
         await LoadPreview();
     }
 

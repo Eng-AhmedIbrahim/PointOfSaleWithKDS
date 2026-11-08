@@ -1,4 +1,4 @@
-@inject LocalizationService Localizer
+﻿@inject LocalizationService Localizer
 
 <div class="summary-card fade-in">
     <div class="card-header @Color">
@@ -6,7 +6,7 @@
             <MudIcon Icon="@Icon" Size="Size.Medium" Class="header-icon" />
             <div class="title-container">
                 <MudText Typo="Typo.h6" Style="font-weight: 700;">@Title</MudText>
-                <MudText Typo="Typo.caption" Style="opacity: 0.8;">@Localizer["DailyPerformance"]</MudText>
+                <MudText Typo="Typo.caption" Style="opacity: 0.8;">@((Localizer.GetCurrentLanguage() == "ar" ? "الأداء اليومي" : Localizer["DailyPerformance"]))</MudText>
             </div>
         </div>
     </div>
@@ -25,7 +25,7 @@
         </div>
         <div class="stat-item">
             <span class="label">@(Title == Localizer["Delivery"] ? Localizer["DeliveryService"] : Localizer["Service"])</span>
-            <span class="value">@Data.Service.ToString("0.##")</span>
+            <span class="value">@((Data.DeliveryFees > 0 ? Data.DeliveryFees : Data.Service).ToString("0.##"))</span>
         </div>
         <div class="stat-item uncollected">
             <span class="label">@Localizer["Uncollected"]</span>
@@ -46,7 +46,7 @@
             </div>
             <div class="divider-v"></div>
             <div class="sub-stat">
-                <span class="label">@Localizer["Average"]</span>
+                <span class="label">@((Localizer.GetCurrentLanguage() == "ar" ? "المتوسط" : Localizer["Average"]))</span>
                 <span class="value">@Data.AverageOrder.ToString("0.##")</span>
             </div>
         </div>

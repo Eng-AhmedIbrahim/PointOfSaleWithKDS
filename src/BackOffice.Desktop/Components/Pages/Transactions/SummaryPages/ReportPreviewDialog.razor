@@ -1,4 +1,4 @@
-@using global::POS.Contract.Dtos.ReportingDtos
+﻿@using global::POS.Contract.Dtos.ReportingDtos
 @inject IPrintOrderService PrintOrderService
 @inject IPrinterServices PrinterServices
 @inject ISnackbar Snackbar
@@ -1257,7 +1257,7 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
 
     private List<string> _printers = new();
-    private bool _useA4 = false;
+    private bool _useA4 = true;
     private bool _isArabic = true;
     private bool _showOrderDetails = true;
     private string _filterType = "All"; // All, Void, Discount
@@ -1281,7 +1281,7 @@
     private int GetOrdersWithDiscountCount() => SummaryData.DetailedOrders?.Count(o => (o.TotalDiscount ?? 0) > 0) ?? 0;
 
     [Parameter] public bool InitialShowOrderDetails { get; set; } = true;
-    [Parameter] public bool InitialUseA4 { get; set; } = false;
+    [Parameter] public bool InitialUseA4 { get; set; } = true;
     [Parameter] public bool InitialShowStaffDetails { get; set; } = false;
 
     protected override async Task OnInitializedAsync()

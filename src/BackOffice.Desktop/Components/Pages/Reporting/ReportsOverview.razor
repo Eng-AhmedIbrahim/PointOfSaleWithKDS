@@ -1,10 +1,18 @@
-@page "/reports/overview"
+﻿@page "/reports/overview"
 @inject IReportingErpService ReportingService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IDesktopPrintingService PrintingService
 @inject BlazorBase.Services.LocalizationService LocalizerService
 @inject NavigationManager NavigationManager
+@inject IAppDateService AppDateService
+@using ERPFront.HubSettings
+@using ERPFront.Models
+@inject CallCenterHubSettings? CallCenterHubs
+@inject DispatcherSettings? DispatcherSettings
+@inject POS.Core.Services.Contract.PosFeatureServices.IPosFeatureSettingsService FeatureSettingsService
+@inject CommonProperties CommonProps
+@inject IBranchService BranchService
 @attribute [Authorize]
 
 <div class="reports-page-wrapper @(IsArabic ? "rtl-mode" : "")" dir="@(IsArabic ? "rtl" : "ltr")">
@@ -17,6 +25,7 @@
             <MudPaper Outlined="true" Class="d-flex align-center px-4 py-2 rounded-xl border-2">
                 <MudIcon Icon="@Icons.Material.Rounded.CalendarToday" Class="me-2 text-primary" />
                 <MudDateRangePicker @bind-DateRange="_dateRange" Label="@(IsArabic ? "فترة التقرير" : "Report Period")"
+                                    Culture="@PickerCulture" DateFormat="yyyy/MM/dd"
                                     Variant="MudBlazor.Variant.Text" DisableToolbar="true" Color="Color.Primary" />
             </MudPaper>
         </div>
@@ -58,8 +67,18 @@
 </div>
 
 @code {
-    private DateRange _dateRange = new DateRange(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), DateTime.Today);
+    private DateRange _dateRange = new DateRange(DateTime.Today, DateTime.Today);
     private bool IsArabic => LocalizerService.GetCurrentLanguage() == "ar";
+    private System.Globalization.CultureInfo PickerCulture
+    {
+        get
+        {
+            if (!IsArabic) return System.Globalization.CultureInfo.InvariantCulture;
+            var culture = new System.Globalization.CultureInfo("ar-EG");
+            culture.DateTimeFormat.Calendar = new System.Globalization.GregorianCalendar();
+            return culture;
+        }
+    }
 
     private class ReportInfo
     {
@@ -79,10 +98,33 @@
     }
 
     private List<ReportCategory> _reportCategories = new();
+    private bool _isCentralCallCenterEnabled = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            bool isCallCenter = await FeatureSettingsService.IsFeatureEnabledAsync("IsCallCenter", Environment.MachineName)
+                                || await FeatureSettingsService.IsFeatureEnabledAsync("IsCallCenter")
+                                || CommonProps.IsFeatureEnabled("IsCallCenter");
+            _isCentralCallCenterEnabled = isCallCenter;
+        }
+        catch
+        {
+            _isCentralCallCenterEnabled = false;
+        }
+
+
         InitializeCategories();
+        try
+        {
+            var appDate = await AppDateService.GetAppDate();
+            _dateRange = new DateRange(appDate.PosDate, appDate.PosDate);
+        }
+        catch
+        {
+            _dateRange = new DateRange(DateTime.Today, DateTime.Today);
+        }
     }
 
     private void InitializeCategories()
@@ -170,6 +212,7 @@
                     new ReportInfo { Id = "CustomerDirectory", Name = IsArabic ? "دليل العملاء" : "Customer Directory", Description = IsArabic ? "سجل كافة العملاء وبياناتهم" : "Log of all customers and their info", Icon = Icons.Material.Rounded.ContactPhone },
                     new ReportInfo { Id = "DeliveryOrders", Name = IsArabic ? "طلبات التوصيل" : "Delivery Orders", Description = IsArabic ? "سجل طلبات الدليفري وتفاصيلها" : "Log of delivery orders and details", Icon = Icons.Material.Rounded.DeliveryDining },
                     new ReportInfo { Id = "DeliveryAreas", Name = IsArabic ? "مناطق التوصيل (المناطق الأكثر طلباً)" : "Delivery Areas", Description = IsArabic ? "تحليل مبيعات وطلبات كل منطقة" : "Analysis of sales and orders by zone", Icon = Icons.Material.Rounded.Map },
+                    new ReportInfo { Id = "DeliveryBonusReport", Name = IsArabic ? "خدمة التوصيل وبونص الطيارين" : "Delivery Fees & Driver Bonus", Description = IsArabic ? "إجمالي رسوم التوصيل والبونص وتوزيعه على الطيارين" : "Total delivery fees, driver bonuses, and breakdown per driver", Icon = Icons.Material.Rounded.TwoWheeler },
                     new ReportInfo { Id = "VipCustomers", Name = IsArabic ? "العملاء الأكثر طلباً (VIP)" : "VIP Customers", Description = IsArabic ? "ترتيب العملاء حسب عدد الطلبات" : "Customers ranked by order count", Icon = Icons.Material.Rounded.WorkspacePremium },
                     new ReportInfo { Id = "DormantCustomers", Name = IsArabic ? "العملاء المنقطعين" : "Dormant Customers", Description = IsArabic ? "العملاء الذين لم يطلبوا منذ فترة" : "Customers inactive for a specified period", Icon = Icons.Material.Rounded.Snooze }
                 }
@@ -201,10 +244,45 @@
                     new ReportInfo { Id = "VoidedOrders", Name = IsArabic ? "عمليات الحذف (Void)" : "Voids Log", Description = IsArabic ? "تقرير الطلبات المحذوفة والأسباب" : "Report of voided orders and reasons", Icon = Icons.Material.Rounded.DeleteSweep },
                     new ReportInfo { Id = "DetailedVoidReport", Name = IsArabic ? "المحذوفات التفصيلية" : "Detailed Voids", Description = IsArabic ? "عرض كل صنف تم حذفه والسبب" : "View every voided item and reason", Icon = Icons.Material.Rounded.History },
                     new ReportInfo { Id = "DiscountedOrders", Name = IsArabic ? "تقرير الخصومات" : "Discounts Log", Description = IsArabic ? "جميع الطلبات التي تحتوي على خصم" : "All orders containing discounts", Icon = Icons.Material.Rounded.Redeem },
+                    new ReportInfo { Id = "DetailedDiscountsReport", Name = IsArabic ? "الخصومات التفصيلية" : "Detailed Discounts", Description = IsArabic ? "عرض تفاصيل الخصم على الطلبات والأصناف والمسؤول" : "View discount details on orders and items with reasons", Icon = Icons.Material.Rounded.Discount },
                     new ReportInfo { Id = "CommentsReport", Name = IsArabic ? "تقرير الملاحظات" : "Comments Report", Description = IsArabic ? "كل التعليقات المسجلة على الأصناف" : "All recorded notes and item comments", Icon = Icons.Material.Rounded.Comment }
                 }
             }
         };
+
+        if (_isCentralCallCenterEnabled)
+        {
+            var callCenterCat = _reportCategories.FirstOrDefault(c => c.Reports.Any(r => r.Id == "DeliveryOrders"));
+            if (callCenterCat != null && !callCenterCat.Reports.Any(r => r.Id == "BranchComparison"))
+            {
+                callCenterCat.Reports.Insert(0, new ReportInfo
+                {
+                    Id = "BranchComparison",
+                    Name = IsArabic ? "مقارنة مبيعات الفروع" : "Branch Sales Comparison",
+                    Description = IsArabic ? "مقارنة أداء الفروع وإجمالي الطلبات وأعلى فرع مع رسم بياني" : "Compare branch performance, order counts, and top branch with chart",
+                    Icon = Icons.Material.Rounded.Compare
+                });
+            }
+        }
+
+        _reportCategories.Add(new ReportCategory
+        {
+            Title = IsArabic ? "مقارنة بين الكاشرية" : "Cashier Comparison",
+            Icon = Icons.Material.Rounded.PointOfSale,
+            Color = Color.Secondary,
+            ColorHex = "#8b5cf6",
+            Reports = new List<ReportInfo>
+            {
+                new ReportInfo
+                {
+                    Id = "CashierComparison",
+                    Name = IsArabic ? "مقارنة أداء الكاشيرية" : "Cashier Performance Comparison",
+                    Description = IsArabic ? "مقارنة دقيقة لمبيعات وطلبات وخصومات وإلغاءات كل كاشير مع مؤشرات الأداء" : "Detailed comparison of sales, orders, discounts, and voids per cashier with KPIs",
+                    Icon = Icons.Material.Rounded.Leaderboard
+                }
+            }
+        });
+
     }
 
     private async Task SelectReport(ReportInfo report)
@@ -260,6 +338,19 @@
         {
             var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
             var dialog = await DialogService.ShowAsync<DormantCustomerDaysDialog>("", options);
+            var result = await dialog.Result;
+            if (result == null || result.Canceled) return;
+
+            additionalFilters = result.Data as Dictionary<string, string>;
+        }
+        else if (report.Id == "DetailedVoidReport" || report.Id == "DetailedDiscountsReport")
+        {
+            var parameters = new DialogParameters<CashierFilterSelectionDialog>
+            {
+                { x => x.SelectedDate, _dateRange.Start ?? DateTime.Today }
+            };
+            var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+            var dialog = await DialogService.ShowAsync<CashierFilterSelectionDialog>("", parameters, options);
             var result = await dialog.Result;
             if (result == null || result.Canceled) return;
 

@@ -52,8 +52,8 @@ public partial class SummaryPage
             }
 
             var appDate = await AppDateService.GetAppDate();
-            var dtStart = appDate.PosDate;
-            var dtEnd = appDate.PosDate;
+            var dtStart = appDate != null && appDate.PosDate != default ? appDate.PosDate : DateTime.Today;
+            var dtEnd = dtStart;
 
             if (DateTime.TryParse(Start, out var pStart) && DateTime.TryParse(End, out var pEnd))
             {
@@ -97,8 +97,8 @@ public partial class SummaryPage
             else
             {
                 var appDate = await AppDateService.GetAppDate();
-                startDate = appDate.PosDate;
-                endDate = appDate.PosDate;
+                startDate = appDate != null && appDate.PosDate != default ? appDate.PosDate : DateTime.Today;
+                endDate = startDate;
                 _dateRange = new DateRange(startDate, endDate);
             }
 

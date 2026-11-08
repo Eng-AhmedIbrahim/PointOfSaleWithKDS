@@ -1,4 +1,4 @@
-@using System.IO
+﻿@using System.IO
 @using QuestPDF.Fluent
 @using global::BackOffice.Desktop.Components.Pages.Reporting
 @inject IReportingErpService ReportingService
@@ -9,7 +9,7 @@
 @inject ISnackbar Snackbar
 <MudDialog Class="premium-detailed-sales-dialog" DisableSidePadding="true" Style="border-radius: 24px; overflow: hidden; height: 95vh; background: #fdfdfd;">
     <DialogContent>
-        <div class="dialog-wrapper d-flex flex-column" style="height: 95vh; overflow: hidden;" dir="@(_commonProperties.IsRtl ? "rtl" : "ltr")">
+        <div class="dialog-wrapper d-flex flex-column" style="height: 95vh; overflow: hidden;" dir="@(IsArabic ? "rtl" : "ltr")">
             <!-- Premium Header Section -->
             <div class="header-container glass-header pa-6 mb-4 mt-0">
                 <div class="d-flex align-center justify-space-between mb-4">
@@ -74,20 +74,36 @@
                         @foreach (var order in FilteredOrders)
                         {
                             <MudExpansionPanel Class="premium-order-panel mb-3 shadow-sm" HideIcon="false">
-                                <TitleContent>
+                                                                <TitleContent>
                                     <div class="d-flex align-center justify-space-between w-100 pe-2">
-                                        <div class="d-flex align-center gap-3">
-                                            <div class="order-amount-box text-center">
-                                                <MudText Typo="Typo.caption" Class="amount-label">@Localizer["Total"]</MudText>
-                                                <MudText Typo="Typo.h6" Class="amount-value">@order.GrandTotal?.ToString("0.##")</MudText>
+                                        <!-- Right side in RTL: Order Number, Type, Status, Time & Cashier -->
+                                        <div class="d-flex align-center gap-4">
+                                            <div class="order-id-badge">#@order.OrderId</div>
+                                            <div class="d-flex flex-column text-start">
+                                                <div class="d-flex align-center gap-2">
+                                                    <MudText Typo="Typo.subtitle1" Class="order-type-text">
+                                                        @(order.OrderType == "TakeAway" ? Localizer["TakeAway"] : 
+                                                          order.OrderType == "Delivery" ? Localizer["Delivery"] : Localizer["DineIn"])
+                                                    </MudText>
+                                                    <span class="status-indicator @order.OrderState!.ToLower()">@Localizer[order.OrderState]</span>
+                                                </div>
+                                                <div class="d-flex align-center gap-2 mt-n1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Class="text-muted" />
+                                                    <MudText Typo="Typo.caption" Class="text-muted">@order.OrderDate?.ToString("hh:mm tt")</MudText>
+                                                    <MudIcon Icon="@Icons.Material.Filled.PersonOutline" Size="Size.Small" Class="text-muted ms-2" />
+                                                    <MudText Typo="Typo.caption" Class="text-muted">@order.CashierName</MudText>
+                                                </div>
                                             </div>
+                                        </div>
 
+                                        <!-- Left side in RTL: Actions button & Total Amount -->
+                                        <div class="d-flex align-center gap-3">
                                             <MudMenu Label="@Localizer["Actions"]" 
                                                     StartIcon="@Icons.Material.Filled.Settings" 
                                                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                                                    Color="Color.Default"
-                                                     Variant="MudBlazor.Variant.Text"
-                                                     Dense="true" 
+                                                    Color="Color.Default" 
+                                                    Variant="MudBlazor.Variant.Text" 
+                                                    Dense="true" 
                                                     Size="Size.Small"
                                                     Class="rounded-pill px-4"
                                                     AnchorOrigin="Origin.BottomRight">
@@ -95,24 +111,11 @@
                                                 <MudMenuItem Icon="@Icons.Material.Filled.Receipt" IconColor="Color.Primary" OnClick="@(() => OpenOrderPreview(order, "Customer"))">@Localizer["CustomerReceipt"]</MudMenuItem>
                                                 <MudMenuItem Icon="@Icons.Material.Filled.ShoppingBag" IconColor="Color.Warning" OnClick="@(() => OpenOrderPreview(order, "Kitchen"))">@Localizer["Pickup"]</MudMenuItem>
                                             </MudMenu>
-                                        </div>
-                                        <div class="d-flex align-center gap-4">
-                                            <div class="d-flex flex-column text-end">
-                                                <div class="d-flex align-center justify-end gap-2">
-                                                    <span class="status-indicator @order.OrderState!.ToLower()">@Localizer[order.OrderState]</span>
-                                                    <MudText Typo="Typo.subtitle1" Class="order-type-text">
-                                                        @(order.OrderType == "TakeAway" ? Localizer["TakeAway"] : 
-                                                          order.OrderType == "Delivery" ? Localizer["Delivery"] : Localizer["DineIn"])
-                                                    </MudText>
-                                                </div>
-                                                <div class="d-flex align-center justify-end gap-2 mt-n1">
-                                                    <MudText Typo="Typo.caption" Class="text-muted">@order.CashierName</MudText>
-                                                    <MudIcon Icon="@Icons.Material.Filled.PersonOutline" Size="Size.Small" Class="text-muted" />
-                                                    <MudText Typo="Typo.caption" Class="text-muted ms-2">@order.OrderDate?.ToString("hh:mm tt")</MudText>
-                                                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" Class="text-muted" />
-                                                </div>
+
+                                            <div class="order-amount-box text-center">
+                                                <MudText Typo="Typo.caption" Class="amount-label">@Localizer["Total"]</MudText>
+                                                <MudText Typo="Typo.h6" Class="amount-value">@order.GrandTotal?.ToString("0.##")</MudText>
                                             </div>
-                                            <div class="order-id-badge">#@order.OrderId</div>
                                         </div>
                                     </div>
                                 </TitleContent>
@@ -133,7 +136,25 @@
                                                     @foreach (var item in order.OrderDetails)
                                                     {
                                                         <tr>
-                                                            <td class="text-start font-medium">@(_commonProperties.IsRtl ? item.NameAr : item.Name)</td>
+                                                            <td class="text-start font-medium">
+                                                                <div>@(IsArabic ? (item.NameAr ?? item.Name) : (item.Name ?? item.NameAr))</div>
+                                                                @if (item.Attributes != null && item.Attributes.Any())
+                                                                {
+                                                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                                                        @foreach (var attr in item.Attributes)
+                                                                        {
+                                                                            <span class="px-2 py-0 rounded text-xs" style="background: #e0e7ff; color: #3730a3; font-size: 11px;">+ @attr.Name @(attr.ExtraPrice > 0 ? $"({attr.ExtraPrice:0.##})" : "")</span>
+                                                                        }
+                                                                    </div>
+                                                                }
+                                                                @if (!string.IsNullOrWhiteSpace(item.LineComment))
+                                                                {
+                                                                    <div class="text-xs text-muted mt-1 d-flex align-center gap-1" style="font-size: 11px; color: #64748b;">
+                                                                        <MudIcon Icon="@Icons.Material.Filled.Notes" Size="Size.Small" Style="font-size: 13px;" />
+                                                                        <span>@item.LineComment</span>
+                                                                    </div>
+                                                                }
+                                                            </td>
                                                             <td class="text-center">
                                                                 <span class="qty-badge">@item.Quantity</span>
                                                             </td>
@@ -303,6 +324,7 @@
 </style>
 
 @code {
+    private bool IsArabic => Localizer.GetCurrentLanguage() == "ar";
     [Parameter] public DateTime SelectedDate { get; set; }
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 

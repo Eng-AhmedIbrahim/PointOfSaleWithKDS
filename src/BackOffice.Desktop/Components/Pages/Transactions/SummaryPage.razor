@@ -1,4 +1,4 @@
-@page "/transactions/summary"
+﻿@page "/transactions/summary"
 @layout MainLayout
 @inject CommonProperties _commonProperties
 @inject NavigationManager _navigationManager
@@ -11,6 +11,16 @@
 
 @code {
     private bool IsArabic => Localizer.GetCurrentLanguage() == "ar";
+    private System.Globalization.CultureInfo PickerCulture
+    {
+        get
+        {
+            if (!IsArabic) return System.Globalization.CultureInfo.InvariantCulture;
+            var culture = new System.Globalization.CultureInfo("ar-EG");
+            culture.DateTimeFormat.Calendar = new System.Globalization.GregorianCalendar();
+            return culture;
+        }
+    }
 }
 
 <div class="summary-container" dir="@(IsArabic ? "rtl" : "ltr")">
@@ -23,11 +33,13 @@
             <MudDateRangePicker DateRange="_dateRange" 
                                 DateRangeChanged="OnDateRangeChanged" 
                                 Placeholder="@(IsArabic ? "فترة التقرير" : "Select Period")"
+                                Culture="@PickerCulture"
+                                DateFormat="yyyy/MM/dd"
                                 Adornment="Adornment.Start"
                                 AdornmentIcon="@Icons.Material.Rounded.Event"
                                 AdornmentColor="Color.Primary"
                                 Variant="MudBlazor.Variant.Text" 
-                                DisableToolbar="true" 
+                                DisableToolbar="false" 
                                 Color="Color.Primary" 
                                 Class="flex-grow-1"
                                 Margin="Margin.Dense"
@@ -176,9 +188,19 @@
                         
                         <MudItem xs="12">
                             <div class="table-card glass voids">
-                                <div class="tc-header error-bg">
-                                    <MudIcon Icon="@Icons.Material.Filled.DeleteForever" />
-                                    <span>@(IsArabic ? "تفاصيل المرتجعات والإلغاء" : "Voids & Returns Details")</span>
+                                <div class="tc-header error-bg d-flex align-center justify-space-between w-100 flex-wrap gap-2">
+                                    <div class="d-flex align-center gap-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.DeleteForever" />
+                                        <span>@(IsArabic ? "تفاصيل المرتجعات والإلغاء" : "Voids & Returns Details")</span>
+                                    </div>
+                                    <div class="d-flex align-center gap-3">
+                                        <span class="px-3 py-1 rounded-pill" style="font-size: 0.8rem; background: rgba(0,0,0,0.25);">
+                                            @(IsArabic ? "إجمالي الإلغاءات: " : "Total Voids: ")<b>@_summaryData.Overall.VoidAmount.ToString("0.##") @_summaryData.Overall.Currency</b>
+                                        </span>
+                                        <span class="px-3 py-1 rounded-pill" style="font-size: 0.8rem; background: rgba(0,0,0,0.25);">
+                                            @(IsArabic ? "إجمالي الخصومات: " : "Total Discounts: ")<b>@_summaryData.Overall.TotalDiscount.ToString("0.##") @_summaryData.Overall.Currency</b>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="tc-body">
                                     @if (_summaryData.VoidEvents != null && _summaryData.VoidEvents.Any())

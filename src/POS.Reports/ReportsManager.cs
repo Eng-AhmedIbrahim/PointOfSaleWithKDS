@@ -1,4 +1,4 @@
-namespace POS.Reports;
+﻿namespace POS.Reports;
 
 public interface IReportsManager
 {
@@ -39,6 +39,28 @@ public class ReportsManager : IReportsManager
         if (request.Filters != null && request.Filters.TryGetValue("BranchName", out var filterBranch))
             branchName = filterBranch;
 
+        if (request.Format?.ToUpper() == "EXCEL" && 
+            request.ReportId != "SalesSummary" && 
+            request.ReportId != "SalesDetailed" && 
+            request.ReportId != "HospitalityReport" && 
+            request.ReportId != "Hospitality" && 
+            request.ReportId != "DetailedVoidReport" && 
+            request.ReportId != "VoidedOrders" &&
+            request.ReportId != "BranchComparison" &&
+            request.ReportId != "DeliveryBonusReport" &&
+            request.ReportId != "CashierComparison" &&
+            request.ReportId != "DetailedDiscountsReport" &&
+            request.ReportId != "CustomerDirectory" &&
+            request.ReportId != "VipCustomers" &&
+            request.ReportId != "DormantCustomers" &&
+            request.ReportId != "DeliveryOrders" &&
+            request.ReportId != "DeliveryAreas")
+        {
+            DataSet dsExcel = await FetchReportData(request);
+            return GenerateExcelReport(request, dsExcel);
+        }
+
+
         if (request.ReportId == "SalesSummary")
         {
             var summary = await _reportingService.GetSalesSummaryAsync(request.FromDate, request.ToDate);
@@ -58,6 +80,17 @@ public class ReportsManager : IReportsManager
                         break;
                     }
                 }
+            }
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportSalesSummary(summary, catItems, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"SalesSummary_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
             }
 
             var document = new BackOfficeSalesSummaryDocument(summary, catItems, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
@@ -97,6 +130,17 @@ public class ReportsManager : IReportsManager
                         break;
                     }
                 }
+            }
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportSalesDetailed(orders, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"SalesDetailed_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
             }
 
             var document = new BackOfficeSalesDetailedDocument(orders, branchName, request.FromDate, request.ToDate, request.Language, isThermal);
@@ -178,31 +222,74 @@ public class ReportsManager : IReportsManager
             };
         }
 
-        if (request.ReportId == "DetailedVoidReport" || request.ReportId == "VoidedOrders")
+        if (request.ReportId == "VoidedOrders")
         {
             string? vOrderType = request.Filters != null && request.Filters.ContainsKey("OrderType") ? request.Filters["OrderType"] : null;
             var allOrdersForVoids = await _reportingService.GetTodayOrdersAsync(request.FromDate, vOrderType);
             
             var voidOrders = allOrdersForVoids.Where(o => (o.VoidAmount ?? 0) > 0 || o.OrderState == "Voided" || (o.OrderDetails?.Any(i => i.IsVoided) ?? false)).ToList();
 
-            bool isThermal = false;
-            if (request.Filters != null)
+            bool isThermal = IsThermalRequest(request);
+            string title = (request.Language?.ToLower() == "en") ? "Void Transactions Summary Report" : "تقرير ملخص عمليات الحذف (Void)";
+
+            if (request.Format?.ToUpper() == "EXCEL")
             {
-                var keysToCheck = new[] { "PrinterType", "PrinterSize", "PageFormat" };
-                var valuesToMatch = new[] { "Thermal", "Cashier", "80mm" };
-                foreach (var k in keysToCheck)
+                byte[] excelBytes = ExcelReportExportService.ExportVoidSummary(voidOrders, branchName, request.FromDate, request.ToDate, request.Language ?? "ar");
+                return new ReportResponseDto
                 {
-                    if (request.Filters.TryGetValue(k, out var val) && valuesToMatch.Any(v => v.Equals(val, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        isThermal = true;
-                        break;
-                    }
-                }
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"VoidSummary_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
             }
 
-            string title = request.ReportId == "VoidedOrders" ? "تقرير الطلبات الملغاة" : "تقرير الإلغاءات التفصيلي";
-            if (request.Language?.ToLower() == "en")
-                title = request.ReportId == "VoidedOrders" ? "Voided Orders Report" : "Detailed Void Report";
+            var document = new BackOfficeVoidSummaryDocument(voidOrders, branchName, request.FromDate, request.ToDate, title, request.Language ?? "ar", isThermal);
+            byte[] pdfBytes = document.GeneratePdf();
+
+            return new ReportResponseDto
+            {
+                Content = pdfBytes,
+                ContentType = "application/pdf",
+                FileName = $"VoidSummary_{DateTime.Now:yyyyMMdd}.pdf"
+            };
+        }
+
+        if (request.ReportId == "DetailedVoidReport")
+        {
+            string? vOrderType = request.Filters != null && request.Filters.ContainsKey("OrderType") ? request.Filters["OrderType"] : null;
+            var allOrdersForVoids = await _reportingService.GetTodayOrdersAsync(request.FromDate, vOrderType);
+            
+            var voidOrders = allOrdersForVoids.Where(o => (o.VoidAmount ?? 0) > 0 || o.OrderState == "Voided" || (o.OrderDetails?.Any(i => i.IsVoided) ?? false)).ToList();
+
+            string cashierNameFilter = "";
+            if (request.Filters != null && request.Filters.TryGetValue("CashierName", out var cName) && !string.IsNullOrWhiteSpace(cName) && cName != "All" && cName != "الكل")
+            {
+                cashierNameFilter = cName;
+                voidOrders = voidOrders.Where(o =>
+                    (o.CashierName != null && o.CashierName.Equals(cName, StringComparison.OrdinalIgnoreCase)) ||
+                    (o.StaffName != null && o.StaffName.Equals(cName, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            else if (request.Filters != null && request.Filters.TryGetValue("CashierId", out var cId) && !string.IsNullOrWhiteSpace(cId) && cId != "All")
+            {
+                voidOrders = voidOrders.Where(o => o.CashierId == cId).ToList();
+            }
+
+            bool isThermal = IsThermalRequest(request);
+            string title = (request.Language?.ToLower() == "en") ? "Detailed Void Report" : "تقرير المحذوفات التفصيلي للأصناف";
+            if (!string.IsNullOrWhiteSpace(cashierNameFilter))
+                title += $" - كاشير: {cashierNameFilter}";
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportDetailedVoids(voidOrders, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"DetailedVoidReport_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
 
             var document = new BackOfficeVoidReportDocument(voidOrders.Cast<POS.Contract.Dtos.OrderDtos.OrderDto>().ToList(), branchName, request.FromDate, request.ToDate, title, request.Language, isThermal);
             byte[] pdfBytes = document.GeneratePdf();
@@ -211,7 +298,7 @@ public class ReportsManager : IReportsManager
             {
                 Content = pdfBytes,
                 ContentType = "application/pdf",
-                FileName = $"{request.ReportId}_{DateTime.Now:yyyyMMdd}.pdf"
+                FileName = $"DetailedVoidReport_{DateTime.Now:yyyyMMdd}.pdf"
             };
         }
 
@@ -249,6 +336,80 @@ public class ReportsManager : IReportsManager
                 Content = pdfBytes,
                 ContentType = "application/pdf",
                 FileName = $"DiscountedOrders_{DateTime.Now:yyyyMMdd}.pdf"
+            };
+        }
+
+        if (request.ReportId == "DetailedDiscountsReport")
+        {
+            var allOrders = await _reportingService.GetTodayOrdersAsync(request.FromDate);
+            if (request.ToDate.Date != request.FromDate.Date)
+            {
+                var currentDate = request.FromDate.Date.AddDays(1);
+                while (currentDate <= request.ToDate.Date)
+                {
+                    var dayOrders = await _reportingService.GetTodayOrdersAsync(currentDate);
+                    allOrders.AddRange(dayOrders);
+                    currentDate = currentDate.AddDays(1);
+                }
+                allOrders = allOrders.DistinctBy(o => o.Id).ToList();
+            }
+
+            var discountOrders = allOrders.Where(o =>
+                (o.TotalOrderDiscount ?? 0) > 0 ||
+                (o.TotalDiscount ?? 0) > 0 ||
+                (o.DiscountedItems ?? 0) > 0 ||
+                (o.OrderDetails != null && o.OrderDetails.Any(i => i.HasDiscount || (i.DiscountAmount ?? 0) > 0 || (i.DiscountPercentage ?? 0) > 0 || (i.TotalDiscountPrice ?? 0) > 0))
+            ).ToList();
+
+            string cashierNameFilter = "";
+            if (request.Filters != null && request.Filters.TryGetValue("CashierName", out var cName) && !string.IsNullOrWhiteSpace(cName) && cName != "All" && cName != "الكل")
+            {
+                cashierNameFilter = cName;
+                discountOrders = discountOrders.Where(o => 
+                    (o.CashierName != null && o.CashierName.Equals(cashierNameFilter, StringComparison.OrdinalIgnoreCase)) ||
+                    (o.StaffName != null && o.StaffName.Equals(cashierNameFilter, StringComparison.OrdinalIgnoreCase)) ||
+                    (o.DiscountByName != null && o.DiscountByName.Equals(cashierNameFilter, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            bool isThermal = false;
+            if (request.Filters != null)
+            {
+                var keysToCheck = new[] { "PrinterType", "PrinterSize", "PageFormat" };
+                var valuesToMatch = new[] { "Thermal", "Cashier", "80mm" };
+                foreach (var k in keysToCheck)
+                {
+                    if (request.Filters.TryGetValue(k, out var val) && valuesToMatch.Any(v => v.Equals(val, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        isThermal = true;
+                        break;
+                    }
+                }
+            }
+
+            string title = request.Language?.ToLower() == "en" ? "Detailed Discounts Report" : "تقرير الخصومات التفصيلي";
+            if (!string.IsNullOrWhiteSpace(cashierNameFilter))
+                title += request.Language?.ToLower() == "en" ? $" - Cashier: {cashierNameFilter}" : $" - الكاشير: {cashierNameFilter}";
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportDetailedDiscounts(discountOrders, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"DetailedDiscounts_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
+
+            var document = new BackOfficeDetailedDiscountDocument(discountOrders.Cast<POS.Contract.Dtos.OrderDtos.OrderDto>().ToList(), branchName, request.FromDate, request.ToDate, title, request.Language, isThermal);
+            byte[] pdfBytes = document.GeneratePdf();
+
+            return new ReportResponseDto
+            {
+                Content = pdfBytes,
+                ContentType = "application/pdf",
+                FileName = $"DetailedDiscounts_{DateTime.Now:yyyyMMdd}.pdf"
             };
         }
 
@@ -293,6 +454,17 @@ public class ReportsManager : IReportsManager
                         break;
                     }
                 }
+            }
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportHospitality(orders, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"Hospitality_{request.FromDate:yyyyMMdd}.xlsx"
+                };
             }
 
             var document = new BackOfficeHospitalityDocument(orders, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
@@ -481,6 +653,16 @@ public class ReportsManager : IReportsManager
                        "Customer Directory";
             }
 
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportCustomerReport(customersData, branchName, title, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"{request.ReportId}_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
             var document = new POS.Reports.ReportsMakerServices.BackOfficeCustomerReportDocument(customersData, branchName, title, request.FromDate, request.ToDate, isThermal, request.Language);
             byte[] pdfBytes = document.GeneratePdf();
 
@@ -498,6 +680,16 @@ public class ReportsManager : IReportsManager
             bool isThermal = IsThermalRequest(request);
             string title = "تقرير طلبات التوصيل";
             if (request.Language?.ToLower() == "en") title = "Delivery Orders Report";
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportSalesDetailed(allOrders, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"DeliveryOrders_{request.FromDate:yyyyMMdd}.xlsx"
+                };
+            }
             var document = new BackOfficeSalesDetailedDocument(allOrders, branchName, request.FromDate, request.ToDate, request.Language, isThermal);
             return new ReportResponseDto
             {
@@ -525,6 +717,16 @@ public class ReportsManager : IReportsManager
                 .ToList();
 
             bool isThermal = IsThermalRequest(request);
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportDeliveryAreas(areaData, branchName, request.FromDate, request.ToDate, request.Language);
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"DeliveryAreas_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
             var document = new POS.Reports.ReportsMakerServices.BackOfficeDeliveryAreasDocument(areaData, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
             
             return new ReportResponseDto
@@ -545,6 +747,267 @@ public class ReportsManager : IReportsManager
             byte[] pdfBytes = document.GeneratePdf();
 
             return new ReportResponseDto { Content = pdfBytes, ContentType = "application/pdf", FileName = $"HourlySales_{DateTime.Now:yyyyMMdd}.pdf" };
+        }
+
+        if (request.ReportId == "BranchComparison")
+        {
+            var ordersRepo = _unitOfWork.Repository<POS.Core.Entities.OrderEntity.Orders>();
+            var allOrders = await ordersRepo.GetAllAsync();
+            var toDateInclusive = request.ToDate.Date.AddDays(1).AddTicks(-1);
+            var filteredOrders = allOrders.Where(o =>
+                o.OrderDate >= request.FromDate.Date &&
+                o.OrderDate <= toDateInclusive &&
+                o.OrderState != POS.Core.Entities.OrderEntity.OrderStates.Voided
+            ).ToList();
+
+            var branchesList = await _branchService.GetBranchesAsync();
+            var branchDict = branchesList?.ToDictionary(b => b.Id, b => b.Name) ?? new();
+
+            var grouped = filteredOrders.GroupBy(o => o.BranchID).ToList();
+            var branchItems = new List<POS.Reports.ReportsMakerServices.BranchComparisonItem>();
+
+            foreach (var g in grouped)
+            {
+                string bName = "";
+                if (branchDict.TryGetValue(g.Key, out var foundName) && !string.IsNullOrWhiteSpace(foundName))
+                    bName = foundName;
+                else
+                    bName = g.FirstOrDefault()?.BranchName ?? $"فرع #{g.Key}";
+
+                var bOrders = g.ToList();
+                decimal total = bOrders.Sum(o => o.GrandTotal ?? 0);
+                var dineOrders = bOrders.Where(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.DineIn).ToList();
+                var takeOrders = bOrders.Where(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.TakeAway).ToList();
+                var delivOrders = bOrders.Where(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.Delivery).ToList();
+
+                branchItems.Add(new POS.Reports.ReportsMakerServices.BranchComparisonItem
+                {
+                    BranchId = g.Key,
+                    BranchName = bName,
+                    OrderCount = bOrders.Count,
+                    TotalSales = total,
+                    DineInCount = dineOrders.Count,
+                    DineInTotal = dineOrders.Sum(o => o.GrandTotal ?? 0),
+                    TakeawayCount = takeOrders.Count,
+                    TakeawayTotal = takeOrders.Sum(o => o.GrandTotal ?? 0),
+                    DeliveryCount = delivOrders.Count,
+                    DeliveryTotal = delivOrders.Sum(o => o.GrandTotal ?? 0)
+                });
+            }
+
+            if (branchesList != null)
+            {
+                foreach (var b in branchesList)
+                {
+                    if (!branchItems.Any(x => x.BranchId == b.Id))
+                    {
+                        branchItems.Add(new POS.Reports.ReportsMakerServices.BranchComparisonItem
+                        {
+                            BranchId = b.Id,
+                            BranchName = b.Name,
+                            OrderCount = 0,
+                            TotalSales = 0
+                        });
+                    }
+                }
+            }
+
+            decimal grandTotal = branchItems.Sum(b => b.TotalSales);
+            decimal maxSales = branchItems.Any() ? branchItems.Max(b => b.TotalSales) : 0;
+            foreach (var item in branchItems)
+            {
+                item.PercentageOfTotal = grandTotal > 0 ? (item.TotalSales / grandTotal) * 100 : 0;
+                item.IsTopBranch = item.TotalSales == maxSales && maxSales > 0;
+            }
+
+            branchItems = branchItems.OrderByDescending(b => b.TotalSales).ToList();
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportBranchComparison(branchItems, branchName, request.FromDate, request.ToDate, request.Language ?? "ar");
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"BranchComparison_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
+
+            bool isThermal = IsThermalRequest(request);
+            var document = new POS.Reports.ReportsMakerServices.BackOfficeBranchComparisonDocument(
+                branchItems, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
+
+            return new ReportResponseDto
+            {
+                Content = document.GeneratePdf(),
+                ContentType = "application/pdf",
+                FileName = $"BranchComparison_{DateTime.Now:yyyyMMdd}.pdf"
+            };
+        }
+
+        if (request.ReportId == "DeliveryBonusReport")
+        {
+            var ordersRepo = _unitOfWork.Repository<POS.Core.Entities.OrderEntity.Orders>();
+            var allOrders = await ordersRepo.GetAllAsync();
+            var toDateInclusive = request.ToDate.Date.AddDays(1).AddTicks(-1);
+            var deliveryOrders = allOrders.Where(o =>
+                o.OrderDate >= request.FromDate.Date &&
+                o.OrderDate <= toDateInclusive &&
+                o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.Delivery &&
+                o.OrderState != POS.Core.Entities.OrderEntity.OrderStates.Voided
+            ).ToList();
+
+            var orderRecords = deliveryOrders.Select(o => new POS.Reports.ReportsMakerServices.DeliveryOrderRecord
+            {
+                OrderId = o.OrderID > 0 ? o.OrderID : o.Id,
+                OrderDate = o.OrderDate,
+                CustomerName = o.CustomerName ?? "",
+                Phone = o.Phone1 ?? o.Phone2 ?? "",
+                ZoneName = o.ZoneName ?? "",
+                DriverName = !string.IsNullOrWhiteSpace(o.DriverName) ? o.DriverName : "غير محدد",
+                DeliveryFees = o.DeliveryFees ?? 0,
+                Bonus = o.ZoneBonus ?? 0,
+                GrandTotal = o.GrandTotal ?? 0
+            }).OrderByDescending(o => o.OrderDate).ToList();
+
+            var driverGroups = deliveryOrders
+                .GroupBy(o => !string.IsNullOrWhiteSpace(o.DriverName) ? o.DriverName : (!string.IsNullOrWhiteSpace(o.DriverID) ? o.DriverID : "غير محدد"))
+                .ToList();
+
+            decimal grandBonus = deliveryOrders.Sum(o => o.ZoneBonus ?? 0);
+            var driverItems = new List<POS.Reports.ReportsMakerServices.DriverBonusItem>();
+
+            foreach (var g in driverGroups)
+            {
+                var dOrders = g.ToList();
+                decimal totalBonus = dOrders.Sum(o => o.ZoneBonus ?? 0);
+                driverItems.Add(new POS.Reports.ReportsMakerServices.DriverBonusItem
+                {
+                    DriverId = dOrders.FirstOrDefault()?.DriverID ?? "",
+                    DriverName = g.Key,
+                    OrderCount = dOrders.Count,
+                    TotalSales = dOrders.Sum(o => o.GrandTotal ?? 0),
+                    DeliveryFees = dOrders.Sum(o => o.DeliveryFees ?? 0),
+                    TotalBonus = totalBonus,
+                    BonusPercentage = grandBonus > 0 ? (totalBonus / grandBonus) * 100 : 0
+                });
+            }
+
+            decimal maxBonus = driverItems.Any() ? driverItems.Max(d => d.TotalBonus) : 0;
+            foreach (var d in driverItems)
+            {
+                d.IsTopDriver = d.TotalBonus == maxBonus && maxBonus > 0;
+            }
+
+            driverItems = driverItems.OrderByDescending(d => d.TotalBonus).ToList();
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportDeliveryBonus(driverItems, orderRecords, branchName, request.FromDate, request.ToDate, request.Language ?? "ar");
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"DeliveryBonus_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
+
+            bool isThermal = IsThermalRequest(request);
+            var document = new POS.Reports.ReportsMakerServices.BackOfficeDeliveryBonusDocument(
+                driverItems, orderRecords, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
+
+            return new ReportResponseDto
+            {
+                Content = document.GeneratePdf(),
+                ContentType = "application/pdf",
+                FileName = $"DeliveryBonus_{DateTime.Now:yyyyMMdd}.pdf"
+            };
+        }
+
+        if (request.ReportId == "CashierComparison")
+        {
+            var ordersRepo = _unitOfWork.Repository<POS.Core.Entities.OrderEntity.Orders>();
+            var allOrders = await ordersRepo.GetAllAsync();
+            var toDateInclusive = request.ToDate.Date.AddDays(1).AddTicks(-1);
+
+            var dateOrders = allOrders.Where(o =>
+                (o.OrderDate >= request.FromDate.Date && o.OrderDate <= toDateInclusive) ||
+                (o.VoidTime.HasValue && o.VoidTime.Value.Date >= request.FromDate.Date && o.VoidTime.Value.Date <= request.ToDate.Date)
+            ).ToList();
+
+            var cashierGroups = dateOrders
+                .Where(o => !string.IsNullOrEmpty(o.CashierID) || !string.IsNullOrEmpty(o.CashierName))
+                .GroupBy(o => !string.IsNullOrEmpty(o.CashierID) ? o.CashierID : o.CashierName)
+                .ToList();
+
+            var cashierItems = new List<POS.Reports.ReportsMakerServices.CashierComparisonItem>();
+
+            foreach (var g in cashierGroups)
+            {
+                var cOrders = g.ToList();
+                var completed = cOrders.Where(o => o.OrderState == POS.Core.Entities.OrderEntity.OrderStates.Completed).ToList();
+                var first = cOrders.FirstOrDefault();
+                string cName = !string.IsNullOrWhiteSpace(first?.CashierName) ? first.CashierName : g.Key!;
+
+                decimal sales = completed.Sum(o => o.GrandTotal ?? 0);
+                decimal cash = completed.Where(o => o.PaymentMethod == POS.Contract.Models.PaymentMethod.Cash).Sum(o => o.GrandTotal ?? 0);
+                decimal credit = completed.Where(o => o.PaymentMethod != POS.Contract.Models.PaymentMethod.Cash).Sum(o => o.GrandTotal ?? 0);
+                decimal discount = cOrders.Sum(o => (o.TotalDiscount ?? 0) > 0 ? o.TotalDiscount.Value : ((o.Discount ?? 0) > 0 ? o.Discount.Value : (o.DiscountedItems ?? 0)));
+                decimal voidAmt = cOrders.Sum(o => (o.TotalVoid ?? 0) > 0 ? o.TotalVoid.Value : (o.VoidAmount ?? (o.OrderState == POS.Core.Entities.OrderEntity.OrderStates.Voided ? (o.GrandTotal ?? (o.Subtotal ?? 0)) : 0)));
+
+                cashierItems.Add(new POS.Reports.ReportsMakerServices.CashierComparisonItem
+                {
+                    CashierId = g.Key!,
+                    CashierName = cName,
+                    OrderCount = cOrders.Count,
+                    CompletedCount = completed.Count,
+                    TotalSales = sales,
+                    CashAmount = cash,
+                    CreditAmount = credit,
+                    TotalDiscount = discount,
+                    DiscountCount = cOrders.Count(o => (o.TotalDiscount ?? 0) > 0 || (o.Discount ?? 0) > 0 || (o.DiscountedItems ?? 0) > 0),
+                    TotalVoid = voidAmt,
+                    VoidCount = cOrders.Count(o => o.OrderState == POS.Core.Entities.OrderEntity.OrderStates.Voided || (o.VoidAmount ?? 0) > 0 || (o.TotalVoid ?? 0) > 0),
+                    TakeawayCount = cOrders.Count(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.TakeAway),
+                    DeliveryCount = cOrders.Count(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.Delivery),
+                    DineInCount = cOrders.Count(o => o.OrderType == POS.Core.Entities.OrderEntity.OrderTypes.DineIn)
+                });
+            }
+
+            decimal totalAllCashiers = cashierItems.Sum(c => c.TotalSales);
+            decimal maxCashierSales = cashierItems.Any() ? cashierItems.Max(c => c.TotalSales) : 0;
+            int maxCashierOrders = cashierItems.Any() ? cashierItems.Max(c => c.OrderCount) : 0;
+
+            foreach (var item in cashierItems)
+            {
+                item.PercentageOfTotal = totalAllCashiers > 0 ? (item.TotalSales / totalAllCashiers) * 100 : 0;
+                item.IsTopSales = item.TotalSales == maxCashierSales && maxCashierSales > 0;
+                item.IsTopOrders = item.OrderCount == maxCashierOrders && maxCashierOrders > 0;
+            }
+
+            cashierItems = cashierItems.OrderByDescending(c => c.TotalSales).ToList();
+
+            if (request.Format?.ToUpper() == "EXCEL")
+            {
+                byte[] excelBytes = ExcelReportExportService.ExportCashierComparison(cashierItems, branchName, request.FromDate, request.ToDate, request.Language ?? "ar");
+                return new ReportResponseDto
+                {
+                    Content = excelBytes,
+                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    FileName = $"CashierComparison_{DateTime.Now:yyyyMMdd}.xlsx"
+                };
+            }
+
+            bool isThermal = IsThermalRequest(request);
+            var document = new POS.Reports.ReportsMakerServices.BackOfficeCashierComparisonDocument(
+                cashierItems, branchName, request.FromDate, request.ToDate, isThermal, request.Language);
+
+            return new ReportResponseDto
+            {
+                Content = document.GeneratePdf(),
+                ContentType = "application/pdf",
+                FileName = $"CashierComparison_{DateTime.Now:yyyyMMdd}.pdf"
+            };
         }
 
         DataSet ds = await FetchReportData(request);
@@ -877,8 +1340,9 @@ public class ReportsManager : IReportsManager
                 ds.Tables.Add(OrdersToDataTable(voids));
                 break;
             case "DiscountedOrders":
+            case "DetailedDiscountsReport":
                 var allForDiscounts = await _reportingService.GetTodayOrdersAsync(request.FromDate);
-                var discounts = allForDiscounts.Where(o => (o.TotalDiscount ?? 0) > 0).ToList();
+                var discounts = allForDiscounts.Where(o => (o.TotalDiscount ?? 0) > 0 || (o.TotalOrderDiscount ?? 0) > 0 || (o.DiscountedItems ?? 0) > 0).ToList();
                 ds.Tables.Add(OrdersToDataTable(discounts));
                 break;
         }
@@ -1083,11 +1547,40 @@ public class ReportsManager : IReportsManager
     private ReportResponseDto GenerateExcelReport(ReportRequestDto request, DataSet ds)
     {
         using var workbook = new XLWorkbook();
-        foreach (DataTable table in ds.Tables)
+        if (ds == null || ds.Tables.Count == 0)
         {
-            var worksheet = workbook.Worksheets.Add(table.TableName);
-            worksheet.Cell(1, 1).InsertTable(table);
-            worksheet.Columns().AdjustToContents();
+            var worksheet = workbook.Worksheets.Add("Report");
+            worksheet.Cell(1, 1).Value = (request.Language?.ToLower() == "en") ? "No data available" : "لا توجد بيانات متاحة لهذه الفترة";
+        }
+        else
+        {
+            foreach (DataTable table in ds.Tables)
+            {
+                string sheetName = string.IsNullOrWhiteSpace(table.TableName) ? "Sheet1" : table.TableName;
+                sheetName = ExcelReportExportService.SanitizeSheetName(sheetName);
+
+                var worksheet = workbook.Worksheets.Add(sheetName);
+                if (table.Columns.Count > 0)
+                {
+                    if (table.Rows.Count > 0)
+                    {
+                        worksheet.Cell(1, 1).InsertTable(table);
+                    }
+                    else
+                    {
+                        for (int c = 0; c < table.Columns.Count; c++)
+                        {
+                            worksheet.Cell(1, c + 1).Value = table.Columns[c].ColumnName;
+                            worksheet.Cell(1, c + 1).Style.Font.Bold = true;
+                        }
+                    }
+                }
+                else
+                {
+                    worksheet.Cell(1, 1).Value = "No data";
+                }
+                worksheet.Columns().AdjustToContents();
+            }
         }
 
         using var ms = new MemoryStream();
