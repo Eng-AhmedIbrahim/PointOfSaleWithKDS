@@ -478,7 +478,7 @@ table.Cell().Element(CellStyle).Text(qtyText).AlignCenter();
             .PaddingTop(7)
             .Text(_receipt.FooterMessage)
             .Bold()
-            .FontSize(15)
+            .FontSize(10)
             .AlignCenter();
 
        column.Item()

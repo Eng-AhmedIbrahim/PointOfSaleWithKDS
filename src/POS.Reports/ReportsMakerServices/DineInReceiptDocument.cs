@@ -443,7 +443,7 @@ table.Cell().Element(CellStyle).Text(qtyText).AlignCenter();
             .PaddingTop(5)
             .Text(receipt.FooterMessage)
             .Bold()
-            .FontSize(15)
+            .FontSize(10)
             .AlignCenter();
 
         column.Item()

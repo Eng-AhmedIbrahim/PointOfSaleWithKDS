@@ -35,29 +35,29 @@
                                Style="width: 100%; border: none; background: transparent; font-weight: 600; font-size: 0.95rem; color: #1e293b; height: 35px;" />
             </div>
         </div>
-        <div class="col-md-7 col-lg-8 d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
-            <MudChip T="string" Selected="@(SelectedItemTypeId == null)" OnClick="@(() => FilterByType(null))"
+        <div class="col-md-7 col-lg-8 d-flex align-items-center justify-content-md-end gap-2 flex-wrap filter-chips-wrapper">
+            <MudChip T="string" OnClick="@(() => FilterByType(null))"
                      Color="@(SelectedItemTypeId == null ? MudBlazor.Color.Primary : MudBlazor.Color.Default)"
                      Variant="@(SelectedItemTypeId == null ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
-                     Style="font-weight: 800; cursor: pointer;">
+                     Class="item-filter-chip">
                 @(IsArabic ? "كل الأصناف" : "All Items") (@Items.Count)
             </MudChip>
-            <MudChip T="string" Selected="@(SelectedItemTypeId == 1)" OnClick="@(() => FilterByType(1))"
+            <MudChip T="string" OnClick="@(() => FilterByType(1))"
                      Color="@(SelectedItemTypeId == 1 ? MudBlazor.Color.Success : MudBlazor.Color.Default)"
                      Variant="@(SelectedItemTypeId == 1 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
-                     Style="font-weight: 800; cursor: pointer;">
+                     Class="item-filter-chip">
                 @(IsArabic ? "أصناف البيع" : "Sale Items") (@Items.Count(x => x.ItemTypeId == 1 || x.ItemTypeId == null))
             </MudChip>
-            <MudChip T="string" Selected="@(SelectedItemTypeId == 2)" OnClick="@(() => FilterByType(2))"
+            <MudChip T="string" OnClick="@(() => FilterByType(2))"
                      Color="@(SelectedItemTypeId == 2 ? MudBlazor.Color.Warning : MudBlazor.Color.Default)"
                      Variant="@(SelectedItemTypeId == 2 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
-                     Style="font-weight: 800; cursor: pointer;">
+                     Class="item-filter-chip">
                 @(IsArabic ? "مواد خام" : "Raw Materials") (@Items.Count(x => x.ItemTypeId == 2))
             </MudChip>
-            <MudChip T="string" Selected="@(SelectedItemTypeId == 3)" OnClick="@(() => FilterByType(3))"
+            <MudChip T="string" OnClick="@(() => FilterByType(3))"
                      Color="@(SelectedItemTypeId == 3 ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
                      Variant="@(SelectedItemTypeId == 3 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
-                     Style="font-weight: 800; cursor: pointer;">
+                     Class="item-filter-chip">
                 @(IsArabic ? "نصف مصنع" : "Semi-Finished") (@Items.Count(x => x.ItemTypeId == 3))
             </MudChip>
         </div>

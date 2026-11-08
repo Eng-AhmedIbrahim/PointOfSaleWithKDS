@@ -83,13 +83,16 @@
     background-color: #f1f5f9 !important;
 }
 
-/* Chip Styling */
-.mud-chip-content {
+/* Table Status Badges */
+.data-grid-container .mud-chip {
     font-weight: 900 !important;
-    /* Ultra bold chips */
+    font-size: 0.8rem !important;
+}
+
+.data-grid-container .mud-chip-content {
+    font-weight: 900 !important;
     font-size: 0.8rem !important;
     color: white !important;
-    /* Force white text */
 }
 
 .search-box-wrapper:focus-within {

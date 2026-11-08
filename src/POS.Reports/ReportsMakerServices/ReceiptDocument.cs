@@ -452,7 +452,7 @@ public class ReceiptDocument : IDocument
             .PaddingTop(8)
             .Text(receipt.FooterMessage)
             .Bold()
-            .FontSize(15)
+            .FontSize(10)
             .AlignCenter();
 
         column.Item()
