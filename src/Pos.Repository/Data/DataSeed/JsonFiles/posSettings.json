@@ -430,5 +430,21 @@
     "ModuleName": "Delivery",
     "ScreenName": "Call Center",
     "Value": false
+  },
+  {
+    "FeatureName": "EnableItemBarcode",
+    "NameEn": "Enable Item Barcode",
+    "NameAr": "Enable Item Barcode",
+    "ModuleName": "BasicData",
+    "ScreenName": "Items",
+    "Value": false
+  },
+  {
+    "FeatureName": "EnableItemBarcodeForPOS",
+    "NameEn": "Enable Item Barcode For POS",
+    "NameAr": "Enable Item Barcode For POS",
+    "ModuleName": "BasicData",
+    "ScreenName": "Items",
+    "Value": false
   }
 ]

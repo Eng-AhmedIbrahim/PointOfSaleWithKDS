@@ -49,6 +49,18 @@
     <script src="site.js"></script>
 
     <script>
+        window.barcodeFocus = {
+            init: function () {
+                setTimeout(function () {
+                    var el = document.querySelector('.pos-barcode-field input');
+                    if (el) el.focus();
+                }, 300);
+            }
+        };
+    </script>
+
+
+    <script>
         function setTableItemCount(count) {
             localStorage.setItem('tableItemCount', count);
         }

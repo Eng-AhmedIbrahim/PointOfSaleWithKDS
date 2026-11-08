@@ -17,6 +17,11 @@ public partial class POS
     private double _spacing = 4.0;
     private Action? _stateChangedHandler;
     private ICollection<BranchToReturnDto>? _branches = new List<BranchToReturnDto>();
+    private MudTextField<string> _barcodeField = default!;
+    private string? _barcode;
+    private bool _barcodeEnabled;
+    private Dictionary<string, MenuSalesItemsToReturnDto> _barcodeItemMap = new(StringComparer.OrdinalIgnoreCase);
+
     private bool canChangeBranch => _dynamicDispatcherSettings?.IsDispatcher ?? false;
 
 
@@ -28,6 +33,11 @@ public partial class POS
     {
         try
         {
+            _barcodeEnabled =
+                await _featureSettingsService.IsFeatureEnabledAsync("EnableItemBarcodeForPOS", Environment.MachineName) == true;
+            if (_barcodeEnabled)
+                await LoadBarcodeItemsMapAsync();
+
             _dynamicDispatcherSettings = await _systemSettingsServices.GetDispatcherSettingsAsync();
             _categories = await _categoryServices.GetAllCategoriesAsync();
             if (_categories != null)
@@ -91,6 +101,10 @@ public partial class POS
             await CustomizationSettingsService.LoadMaxHeights();
             _dotNetRef = DotNetObjectReference.Create(this);
             await JsRuntime.InvokeVoidAsync("listenToDoubleEnter", _dotNetRef);
+            if (_barcodeEnabled)
+            {
+                try { await JsRuntime.InvokeVoidAsync("barcodeFocus.init"); } catch { }
+            }
             StateHasChanged();
         }
     }
@@ -936,5 +950,80 @@ public partial class POS
 
         return _commonProperties.AllowedStaffMenuItems;
     }
+    #endregion
+    #region Barcode Scanning
+
+    private async Task LoadBarcodeItemsMapAsync()
+    {
+        try
+        {
+            var response = await _itemService.GetAllItemsAsync();
+            if (response.Success && response.Data != null)
+            {
+                _barcodeItemMap.Clear();
+                foreach (var item in response.Data)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.Barcode))
+                        _barcodeItemMap[item.Barcode.Trim()] = item;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading barcode items: {ex.Message}");
+        }
+    }
+
+    private async Task OnBarcodeChanged(string val)
+    {
+        _barcode = val;
+        if (string.IsNullOrWhiteSpace(val)) return;
+
+        var code = val.Trim();
+        if (code.Length >= 3 && _barcodeItemMap.TryGetValue(code, out var item))
+        {
+            _barcode = string.Empty;
+            await AddItemToSection4(item);
+            if (_barcodeField is not null)
+                await _barcodeField.FocusAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnBarcodeKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter") return;
+
+        var code = _barcode?.Trim();
+        _barcode = string.Empty;
+        if (string.IsNullOrEmpty(code)) return;
+
+        await AddByBarcodeAsync(code);
+
+        if (_barcodeField is not null)
+            await _barcodeField.FocusAsync();
+    }
+
+    private async Task AddByBarcodeAsync(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode)) return;
+
+        var code = barcode.Trim();
+        if (_barcodeItemMap.TryGetValue(code, out var matched))
+        {
+            await AddItemToSection4(matched);
+            return;
+        }
+
+        await LoadBarcodeItemsMapAsync();
+        if (_barcodeItemMap.TryGetValue(code, out matched))
+        {
+            await AddItemToSection4(matched);
+            return;
+        }
+
+        _snackbar.Add($"Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ØµÙ†Ù Ø¨Ø§Ù„Ø¨Ø§Ø±ÙƒÙˆØ¯: {code}", Severity.Warning);
+    }
+
     #endregion
 }

@@ -203,3 +203,96 @@ body {
 .button-height {
     height: 100px;
 }
+
+
+.section4-header-wrapper {
+    background-color: #447cad !important;
+    color: white !important;
+    min-height: 48px !important;
+    padding: 4px 12px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    flex-shrink: 0 !important;
+    font-family: 'Tajawal', 'Roboto', sans-serif !important;
+}
+
+.section4-title-text {
+    font-size: clamp(0.95rem, 1.2vw, 1.2rem) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+    white-space: nowrap !important;
+}
+
+.pos-barcode-wrapper {
+    width: 220px !important;
+    max-width: 220px !important;
+    height: 34px !important;
+    background: #ffffff !important;
+    border-radius: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 10px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.2s ease-in-out !important;
+    flex-shrink: 0 !important;
+}
+
+.pos-barcode-wrapper:hover,
+.pos-barcode-wrapper:focus-within {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22), 0 0 0 2px rgba(255, 255, 255, 0.85) !important;
+    border-color: #ffffff !important;
+}
+
+.pos-barcode-field {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pos-barcode-field .mud-input {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    height: 30px !important;
+}
+
+.pos-barcode-field .mud-input-underline:before,
+.pos-barcode-field .mud-input-underline:after {
+    display: none !important;
+}
+
+.pos-barcode-field input {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    padding: 0 6px !important;
+    height: 28px !important;
+    font-family: 'Tajawal', 'Roboto', sans-serif !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.pos-barcode-field input::placeholder {
+    color: #94a3b8 !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    opacity: 0.9 !important;
+}
+
+.pos-barcode-field .mud-input-adornment-start {
+    margin: 0 !important;
+    padding-left: 2px !important;
+    padding-right: 6px !important;
+}
+
+.pos-barcode-field .mud-input-adornment-start .mud-icon-root {
+    font-size: 19px !important;
+    color: #0284c7 !important;
+    transition: transform 0.2s ease !important;
+}
+
+.pos-barcode-wrapper:focus-within .pos-barcode-field .mud-input-adornment-start .mud-icon-root {
+    color: #0369a1 !important;
+    transform: scale(1.08) !important;
+}
