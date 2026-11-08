@@ -1,4 +1,4 @@
-﻿using POS.Contract.Models.ReceiptModels;
+using POS.Contract.Models.ReceiptModels;
 
 namespace POS.Reports.ReportsMakerServices;
 
@@ -462,6 +462,7 @@ public class ReceiptDocument : IDocument
             {
                 text.Line("New Tech Company for Software Development").FontSize(9);
                 text.Line("Contact: 01033964899").FontSize(9);
+                text.AlignCenter();
             });
 
     }

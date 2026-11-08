@@ -1,4 +1,4 @@
-﻿using POS.Contract.Models.ReceiptModels;
+using POS.Contract.Models.ReceiptModels;
 using POS.Contract.Models.ReceiptModels.DineIn;
 
 namespace POS.Reports.ReportsMakerServices;
@@ -453,6 +453,7 @@ table.Cell().Element(CellStyle).Text(qtyText).AlignCenter();
             {
                 text.Line("New Tech Company for Software Development").FontSize(9);
                 text.Line("Contact: 01033964899").FontSize(9);
+                text.AlignCenter();
             });
 
     }
