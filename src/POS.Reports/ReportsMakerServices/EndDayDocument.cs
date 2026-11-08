@@ -121,7 +121,7 @@ public class EndDayDocument : IDocument
 
     private void BuildFinancialSummary(ColumnDescriptor column)
     {
-        column.Item().Element(c => SectionTitle(c, _isArabic ? "المخلص المالي" : "Financial Summary"));
+        column.Item().Element(c => SectionTitle(c, _isArabic ? "الملخص المالي" : "Financial Summary"));
         column.Item().PaddingHorizontal(2).Table(t =>
         {
             t.ColumnsDefinition(cols =>

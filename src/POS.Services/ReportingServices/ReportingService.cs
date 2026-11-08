@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -500,37 +500,44 @@ public class ReportingService : IReportingService
                     if (menuItem.ByWeight) unit = "كجم";
                 }
 
-                var lineTotal = d.TotalAmount ?? 0;
+                if (d.ByWeight == true)
+                {
+                    unit = "\u0643\u062c\u0645";
+                }
 
-                var rawExtraPriceTotal = d.OrderItemAttributes?.Sum(a => (a.ExtraPrice ?? 0) * (d.Quantity ?? 0)) ?? 0;
-                var mainItemTotal = lineTotal - rawExtraPriceTotal;
+                if (string.IsNullOrWhiteSpace(itemName)) itemName = d.ItemNameAr ?? "\u0635\u0646\u0641 \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0641";
 
-                rawRows.Add((d.MenuSalesItemId ?? 0, itemName, catName, d.Quantity ?? 0, mainItemTotal, menuItem?.Price ?? 0, unit));
-
+                // Collect attribute names to append them to the item name
+                var attrNames = new List<string>();
                 if (d.OrderItemAttributes != null && d.OrderItemAttributes.Any())
                 {
-                    var itemQty = d.Quantity ?? 0;
                     foreach (var attr in d.OrderItemAttributes)
                     {
-                        if (attr.AttributeItemId.HasValue && attrItemToMenuItemDict.TryGetValue(attr.AttributeItemId.Value, out var relatedMenuItemId))
+                        string aName = attr.AttributeName?.Trim() ?? "";
+                        if (string.IsNullOrWhiteSpace(aName) && attr.AttributeItemId.HasValue && attrItemToMenuItemDict.TryGetValue(attr.AttributeItemId.Value, out var relatedId))
                         {
-                            var relatedItemName = "";
-                            var relatedCatName = "";
-                            var relatedUnit = "قطعة";
-                            if (menuDict.TryGetValue(relatedMenuItemId, out var relatedItem))
-                            {
-                                relatedItemName = relatedItem.ArabicName ?? relatedItem.EnglishName ?? "";
-                                if (relatedItem.CategoryId.HasValue && catDict.TryGetValue(relatedItem.CategoryId.Value, out var relatedCat))
-                                    relatedCatName = relatedCat.ArabicName ?? relatedCat.EnglishName ?? "";
-                                
-                                if (relatedItem.ByWeight) relatedUnit = "كجم";
-                            }
-                            
-                            var attrEffectiveTotal = (attr.ExtraPrice ?? 0) * itemQty;
-                            rawRows.Add((relatedMenuItemId, relatedItemName, relatedCatName, itemQty, attrEffectiveTotal, relatedItem?.Price ?? 0, relatedUnit));
+                            if (menuDict.TryGetValue(relatedId, out var relItem))
+                                aName = (relItem.ArabicName ?? relItem.EnglishName ?? "").Trim();
+                        }
+                        if (!string.IsNullOrWhiteSpace(aName) && !attrNames.Contains(aName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            attrNames.Add(aName);
                         }
                     }
                 }
+
+                var fullItemName = itemName;
+                var missingAttrs = attrNames.Where(a => !fullItemName.Contains(a, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (missingAttrs.Any())
+                {
+                    fullItemName = $"{fullItemName} - {string.Join(" - ", missingAttrs)}";
+                }
+
+                var lineTotal = d.TotalAmount ?? 0;
+                var lineQty = d.Quantity ?? 0;
+                decimal unitPrice = lineQty > 0 ? (lineTotal / lineQty) : (menuItem?.Price ?? d.UnitPrice ?? 0);
+
+                rawRows.Add((d.MenuSalesItemId ?? 0, fullItemName, catName, lineQty, lineTotal, unitPrice, unit));
             }
         }
 

@@ -1,4 +1,4 @@
-namespace POS.Services.DataSyncServices;
+﻿namespace POS.Services.DataSyncServices;
 
 public class DataSyncService : IDataSyncService
 {
@@ -127,24 +127,16 @@ public class DataSyncService : IDataSyncService
                         tablesToSync.AddRange(new[] { "Companies", "Branches" });
                     }
 
-                    if (request.SyncSalesItems)
-                    {
-                        tablesToSync.AddRange(new[] 
-                        { 
-                            "KitchenTypes",         
-                            "ItemsClassifications", 
-                            "Attributes", 
-                            "AttributeGroups", 
-                            "Categories", 
-                            "MenuSalesItems",       
-                            "AttributeItems" 
-                        });
-                    }
-
-                    // Perform Sync (Overwrite with BranchId mapping)
+                    // Perform Sync for Master Data
                     foreach (var table in tablesToSync)
                     {
                         await SyncTable(hqConnString, table, localConn, transaction, localBranchId);
+                    }
+
+                    // Incremental Sales Items Sync: Preserves local kitchen printers, local items, and matches IDs exactly
+                    if (request.SyncSalesItems)
+                    {
+                        await SyncSalesItemsIncremental(hqConnString, localConn, transaction, localBranchId);
                     }
 
                     // 2. Re-enable all constraints
@@ -270,5 +262,174 @@ public class DataSyncService : IDataSyncService
         }
 
         return builder.ConnectionString;
+    }
+
+    private async Task SyncSalesItemsIncremental(string hqConnString, SqlConnection localConn, SqlTransaction transaction, int localBranchId)
+    {
+        using (var hqConn = new SqlConnection(hqConnString))
+        {
+            await hqConn.OpenAsync();
+
+            // 1. KitchenTypes (upsert by Id, preserve existing)
+            await UpsertTableById(hqConn, localConn, transaction, "KitchenTypes", new[] { "KitchenName" });
+
+            // 2. Classifications & Attributes
+            await UpsertTableById(hqConn, localConn, transaction, "ItemsClassifications", new[] { "Name", "ArabicName", "Description" });
+            await UpsertTableById(hqConn, localConn, transaction, "AttributeGroups", new[] { "Name", "ArabicName" });
+            await UpsertTableById(hqConn, localConn, transaction, "Attributes", new[] { "Name", "ArabicName", "SelectionType", "AttributeGroupId" });
+            await UpsertTableById(hqConn, localConn, transaction, "AttributeItems", new[] { "Name", "ArabicName", "Price", "AttributeId" });
+
+            // 3. Categories (upsert by Id)
+            await UpsertTableById(hqConn, localConn, transaction, "Categories", new[] { "ArabicName", "EnglishName", "Description", "ImagePath", "MainCategoryId", "BackColor", "TextColor", "TextSize", "Active" });
+
+            // 4. MenuSalesItems: Match by Id, preserve local printers (KitchenTypeId, PrintInBackupReceipt)
+            var checkCmd = new SqlCommand("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MenuSalesItems'", hqConn);
+            if (Convert.ToInt32(await checkCmd.ExecuteScalarAsync()) == 0) return;
+
+            var cmd = new SqlCommand(@"
+SELECT Id, Barcode, ArabicName, EnglishName, NormalizedEnglishName, Price, SecondPrice, ThirdPrice,
+       FourthPrice, FifthPrice, Tax, Description, ImagePath, MainCategoryId, CategoryId,
+       BackColor, TextColor, TextSize, Invisible, HasAttribute, AttributeId, ByWeight,
+       IsInventory, ItemTypeId, KitchenTypeId, PrintInBackupReceipt, CreationDate
+FROM MenuSalesItems", hqConn);
+
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                var dt = new DataTable();
+                dt.Load(reader);
+
+                var upsertSql = @"
+IF EXISTS (SELECT 1 FROM MenuSalesItems WHERE Id = @Id)
+BEGIN
+    UPDATE MenuSalesItems
+    SET ArabicName = @ArabicName,
+        EnglishName = @EnglishName,
+        NormalizedEnglishName = @NormalizedEnglishName,
+        Barcode = CASE WHEN (@Barcode IS NOT NULL AND @Barcode <> '') THEN @Barcode ELSE Barcode END,
+        Price = @Price,
+        SecondPrice = @SecondPrice,
+        ThirdPrice = @ThirdPrice,
+        FourthPrice = @FourthPrice,
+        FifthPrice = @FifthPrice,
+        Tax = @Tax,
+        Description = @Description,
+        ImagePath = @ImagePath,
+        MainCategoryId = @MainCategoryId,
+        CategoryId = @CategoryId,
+        BackColor = @BackColor,
+        TextColor = @TextColor,
+        TextSize = @TextSize,
+        Invisible = @Invisible,
+        HasAttribute = @HasAttribute,
+        AttributeId = @AttributeId,
+        ByWeight = @ByWeight,
+        IsInventory = @IsInventory,
+        ItemTypeId = @ItemTypeId,
+        UpdatedDate = GETUTCDATE()
+        -- Note: KitchenTypeId and PrintInBackupReceipt are NOT overwritten to protect local branch printer setup!
+    WHERE Id = @Id;
+END
+ELSE
+BEGIN
+    SET IDENTITY_INSERT MenuSalesItems ON;
+    INSERT INTO MenuSalesItems (
+        Id, Barcode, ArabicName, EnglishName, NormalizedEnglishName, Price, SecondPrice, ThirdPrice,
+        FourthPrice, FifthPrice, Tax, Description, ImagePath, MainCategoryId, CategoryId,
+        BackColor, TextColor, TextSize, Invisible, HasAttribute, AttributeId, ByWeight,
+        IsInventory, ItemTypeId, KitchenTypeId, PrintInBackupReceipt, BranchId, CreationDate
+    ) VALUES (
+        @Id, @Barcode, @ArabicName, @EnglishName, @NormalizedEnglishName, @Price, @SecondPrice, @ThirdPrice,
+        @FourthPrice, @FifthPrice, @Tax, @Description, @ImagePath, @MainCategoryId, @CategoryId,
+        @BackColor, @TextColor, @TextSize, @Invisible, @HasAttribute, @AttributeId, @ByWeight,
+        @IsInventory, @ItemTypeId, @KitchenTypeId, @PrintInBackupReceipt, @BranchId, @CreationDate
+    );
+    SET IDENTITY_INSERT MenuSalesItems OFF;
+END";
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    using (var upsertCmd = new SqlCommand(upsertSql, localConn, transaction))
+                    {
+                        upsertCmd.Parameters.AddWithValue("@Id", Convert.ToInt32(row["Id"]));
+                        upsertCmd.Parameters.AddWithValue("@Barcode", row["Barcode"] != DBNull.Value ? row["Barcode"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@ArabicName", row["ArabicName"]);
+                        upsertCmd.Parameters.AddWithValue("@EnglishName", row["EnglishName"]);
+                        upsertCmd.Parameters.AddWithValue("@NormalizedEnglishName", row["NormalizedEnglishName"] != DBNull.Value ? row["NormalizedEnglishName"] : (object)row["EnglishName"].ToString().ToUpperInvariant());
+                        upsertCmd.Parameters.AddWithValue("@Price", row["Price"] != DBNull.Value ? row["Price"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@SecondPrice", row["SecondPrice"] != DBNull.Value ? row["SecondPrice"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@ThirdPrice", row["ThirdPrice"] != DBNull.Value ? row["ThirdPrice"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@FourthPrice", row["FourthPrice"] != DBNull.Value ? row["FourthPrice"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@FifthPrice", row["FifthPrice"] != DBNull.Value ? row["FifthPrice"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@Tax", row["Tax"] != DBNull.Value ? row["Tax"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@Description", row["Description"] != DBNull.Value ? row["Description"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@ImagePath", row["ImagePath"] != DBNull.Value ? row["ImagePath"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@MainCategoryId", row["MainCategoryId"] != DBNull.Value ? row["MainCategoryId"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@CategoryId", row["CategoryId"] != DBNull.Value ? row["CategoryId"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@BackColor", row["BackColor"] != DBNull.Value ? row["BackColor"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@TextColor", row["TextColor"] != DBNull.Value ? row["TextColor"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@TextSize", row["TextSize"] != DBNull.Value ? row["TextSize"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@Invisible", Convert.ToBoolean(row["Invisible"]));
+                        upsertCmd.Parameters.AddWithValue("@HasAttribute", Convert.ToBoolean(row["HasAttribute"]));
+                        upsertCmd.Parameters.AddWithValue("@AttributeId", row["AttributeId"] != DBNull.Value ? row["AttributeId"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@ByWeight", Convert.ToBoolean(row["ByWeight"]));
+                        upsertCmd.Parameters.AddWithValue("@IsInventory", Convert.ToBoolean(row["IsInventory"]));
+                        upsertCmd.Parameters.AddWithValue("@ItemTypeId", row["ItemTypeId"] != DBNull.Value ? row["ItemTypeId"] : 1);
+                        upsertCmd.Parameters.AddWithValue("@KitchenTypeId", row["KitchenTypeId"] != DBNull.Value ? row["KitchenTypeId"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@PrintInBackupReceipt", row["PrintInBackupReceipt"] != DBNull.Value ? row["PrintInBackupReceipt"] : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@BranchId", localBranchId > 0 ? (object)localBranchId : DBNull.Value);
+                        upsertCmd.Parameters.AddWithValue("@CreationDate", row["CreationDate"] != DBNull.Value ? row["CreationDate"] : DateTime.UtcNow);
+
+                        await upsertCmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task UpsertTableById(SqlConnection hqConn, SqlConnection localConn, SqlTransaction transaction, string tableName, string[] updateCols)
+    {
+        var checkCmd = new SqlCommand($"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'", hqConn);
+        if (Convert.ToInt32(await checkCmd.ExecuteScalarAsync()) == 0) return;
+
+        var cmd = new SqlCommand($"SELECT * FROM [{tableName}]", hqConn);
+        using (var reader = await cmd.ExecuteReaderAsync())
+        {
+            var dt = new DataTable();
+            dt.Load(reader);
+
+            if (!dt.Columns.Contains("Id") || dt.Rows.Count == 0) return;
+
+            var allCols = dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList();
+            var validUpdateCols = updateCols.Where(c => allCols.Contains(c)).ToList();
+            if (validUpdateCols.Count == 0) return;
+
+            var setClause = string.Join(", ", validUpdateCols.Select(c => $"[{c}] = @{c}"));
+            var insertCols = string.Join(", ", allCols.Select(c => $"[{c}]"));
+            var insertParams = string.Join(", ", allCols.Select(c => $"@{c}"));
+
+            var sql = $@"
+IF EXISTS (SELECT 1 FROM [{tableName}] WHERE [Id] = @Id)
+BEGIN
+    UPDATE [{tableName}] SET {setClause} WHERE [Id] = @Id;
+END
+ELSE
+BEGIN
+    SET IDENTITY_INSERT [{tableName}] ON;
+    INSERT INTO [{tableName}] ({insertCols}) VALUES ({insertParams});
+    SET IDENTITY_INSERT [{tableName}] OFF;
+END";
+
+            foreach (DataRow row in dt.Rows)
+            {
+                using (var upsertCmd = new SqlCommand(sql, localConn, transaction))
+                {
+                    foreach (var col in allCols)
+                    {
+                        upsertCmd.Parameters.AddWithValue($"@{col}", row[col] ?? DBNull.Value);
+                    }
+                    await upsertCmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-@inject IItemService ItemService
+﻿@inject IItemService ItemService
 @inject ICategoryServices CategoryService
 @inject ISnackbar Snackbar
 
@@ -52,6 +52,32 @@
                                 <RadzenRequiredValidator Component="EnglishName" Text="@(IsArabic ? "الاسم الانجليزي مطلوب" : "English name is required")" Popup="false" Style="font-size: 0.85rem; font-weight: 700; color: #ef4444;" />
                             </div>
                         </div>
+
+                    @if (_isBarcodeEnabled)
+                    {
+                        <div class="field-divider"></div>
+
+                        <!-- Barcode -->
+                        <div class="field-row">
+                            <div class="field-icon-wrap" style="color: #7c3aed;">
+                                <RadzenIcon Icon="qr_code_scanner" Style="font-size: 1rem; color: #7c3aed;" />
+                            </div>
+                            <div class="flex-grow-1">
+                                <RadzenTextBox @bind-Value="model.Barcode"
+                                               Change="@OnBarcodeChanged"
+                                               Style="width: 100%; border: none; background: transparent; font-size: 1rem; font-weight: 700; padding: 0; letter-spacing: 0.05em;"
+                                               AutoComplete="false"
+                                                Placeholder="@(IsArabic ? "الباركود (اختياري)..." : "Barcode (optional)...")" />
+                                @if (!string.IsNullOrEmpty(_barcodeDuplicateError))
+                                {
+                                    <div class="mt-1 d-flex align-center gap-1" style="color: #ef4444; font-size: 0.82rem; font-weight: 800;">
+                                        <RadzenIcon Icon="error" Style="font-size: 0.95rem; color: #ef4444;" />
+                                        <span>@_barcodeDuplicateError</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
                     </div>
 
                     @if (_isInventoryEnabled)
@@ -642,7 +668,39 @@
     private bool _stayOpen = false;
     private bool _showAdvanced = false;
     private bool _isInventoryEnabled = false;
+    private bool _isBarcodeEnabled = false;
     private ItemFormModel model = new();
+    private string? _barcodeDuplicateError;
+
+    private void OnBarcodeChanged(string? value)
+    {
+        ValidateBarcode();
+    }
+
+    private bool ValidateBarcode()
+    {
+        _barcodeDuplicateError = null;
+        if (string.IsNullOrWhiteSpace(model.Barcode))
+            return true;
+
+        var barcode = model.Barcode.Trim();
+        var currentId = ItemToEdit?.Id ?? 0;
+
+        var duplicate = ExistingItems?.FirstOrDefault(i =>
+            i.Id != currentId &&
+            !string.IsNullOrWhiteSpace(i.Barcode) &&
+            string.Equals(i.Barcode.Trim(), barcode, StringComparison.OrdinalIgnoreCase));
+
+        if (duplicate != null)
+        {
+            _barcodeDuplicateError = IsArabic
+                ? $"الباركود مستخدم بالفعل للصنف: \"{duplicate.ArabicName ?? duplicate.EnglishName}\" (كود: {duplicate.Id})"
+                : $"Barcode is already in use by: \"{duplicate.EnglishName ?? duplicate.ArabicName}\" (Code: {duplicate.Id})";
+            return false;
+        }
+
+        return true;
+    }
 
     private void OnItemTypeChanged(object value)
     {
@@ -675,6 +733,7 @@
 
     public class ItemFormModel
     {
+        public string? Barcode { get; set; }
         public int Id { get; set; }
         public string ArabicName { get; set; } = string.Empty;
         public string EnglishName { get; set; } = string.Empty;
@@ -699,6 +758,7 @@
     protected override async Task OnInitializedAsync()
     {
         _isInventoryEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableInventoryTracking");
+        _isBarcodeEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableItemBarcode");
         await Task.WhenAll(LoadCategories(), LoadClassifications(), LoadAttributes(), LoadItemTypes());
 
         if (ItemToEdit != null)
@@ -706,6 +766,7 @@
             model.Id = ItemToEdit.Id;
             model.ArabicName = ItemToEdit.ArabicName ?? string.Empty;
             model.EnglishName = ItemToEdit.EnglishName ?? string.Empty;
+            model.Barcode = ItemToEdit.Barcode;
             model.Price = ItemToEdit.Price;
             model.Tax = ItemToEdit.Tax;
             model.Description = ItemToEdit.Description;
@@ -778,6 +839,12 @@
 
     private async Task SubmitForm()
     {
+        if (!ValidateBarcode())
+        {
+            Snackbar.Add(_barcodeDuplicateError!, Severity.Error);
+            return;
+        }
+
         _isSaving = true;
         if (!_isInventoryEnabled)
         {
@@ -793,6 +860,7 @@
                     Id = model.Id,
                     ArabicName = model.ArabicName,
                     EnglishName = model.EnglishName,
+                    Barcode = model.Barcode,
                     Price = model.Price ?? 0,
                     Tax = model.Tax,
                     Description = model.Description,
@@ -839,6 +907,7 @@
                     ItemId = model.Id,
                     ArabicName = model.ArabicName,
                     EnglishName = model.EnglishName,
+                    Barcode = model.Barcode,
                     Price = model.Price,
                     Tax = model.Tax,
                     Description = model.Description,
@@ -883,6 +952,8 @@
         SetNextId();
         model.ArabicName = string.Empty;
         model.EnglishName = string.Empty;
+        model.Barcode = null;
+        _barcodeDuplicateError = null;
         model.Price = null;
         // Keep Category and Classification if user is adding multiple to same category
         StateHasChanged();

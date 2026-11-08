@@ -1,4 +1,4 @@
-@page "/basicdata/items"
+﻿@page "/basicdata/items"
 @inject IItemService ItemService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -12,7 +12,7 @@
     <div class="page-header mb-3 px-3 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             <MudIcon Icon="@Icons.Material.Filled.Fastfood" Size="MudBlazor.Size.Large" Color="MudBlazor.Color.Primary" Class="me-2" />
-            <h2 class="m-0 page-title">@(IsArabic ? "إدارة العناصر (الأصناف)" : "Items Management")</h2>
+            <h2 class="m-0 page-title">@(IsArabic ? "إدارة الأصناف (المنيو والمواد الخام)" : "Items Management")</h2>
         </div>
         <div class="d-flex align-items-center gap-3">
             <MudButton Variant="MudBlazor.Variant.Filled" 
@@ -25,14 +25,41 @@
         </div>
     </div>
 
-    <div class="row px-3 mb-3">
-        <div class="col-md-6 col-lg-4">
+    <!-- Search & Type Filter Bar -->
+    <div class="row px-3 mb-3 align-items-center g-2">
+        <div class="col-md-5 col-lg-4">
             <div class="search-box-wrapper d-flex align-items-center" style="background: white; border-radius: 12px; padding: 5px 15px; border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.3s ease;">
                 <RadzenIcon Icon="search" Style="font-size: 1.3rem; color: #94a3b8; margin-inline-end: 10px;" />
-                <RadzenTextBox Placeholder="@(IsArabic ? "بحث بالاسم أو الكود..." : "Search by name or ID...")" 
+                <RadzenTextBox Placeholder="@(IsArabic ? "ابحث بالاسم أو الكود أو الباركود..." : "Search by name, ID or barcode...")" 
                                @oninput="OnSearch" 
                                Style="width: 100%; border: none; background: transparent; font-weight: 600; font-size: 0.95rem; color: #1e293b; height: 35px;" />
             </div>
+        </div>
+        <div class="col-md-7 col-lg-8 d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
+            <MudChip T="string" Selected="@(SelectedItemTypeId == null)" OnClick="@(() => FilterByType(null))"
+                     Color="@(SelectedItemTypeId == null ? MudBlazor.Color.Primary : MudBlazor.Color.Default)"
+                     Variant="@(SelectedItemTypeId == null ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
+                     Style="font-weight: 800; cursor: pointer;">
+                @(IsArabic ? "كل الأصناف" : "All Items") (@Items.Count)
+            </MudChip>
+            <MudChip T="string" Selected="@(SelectedItemTypeId == 1)" OnClick="@(() => FilterByType(1))"
+                     Color="@(SelectedItemTypeId == 1 ? MudBlazor.Color.Success : MudBlazor.Color.Default)"
+                     Variant="@(SelectedItemTypeId == 1 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
+                     Style="font-weight: 800; cursor: pointer;">
+                @(IsArabic ? "أصناف البيع" : "Sale Items") (@Items.Count(x => x.ItemTypeId == 1 || x.ItemTypeId == null))
+            </MudChip>
+            <MudChip T="string" Selected="@(SelectedItemTypeId == 2)" OnClick="@(() => FilterByType(2))"
+                     Color="@(SelectedItemTypeId == 2 ? MudBlazor.Color.Warning : MudBlazor.Color.Default)"
+                     Variant="@(SelectedItemTypeId == 2 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
+                     Style="font-weight: 800; cursor: pointer;">
+                @(IsArabic ? "مواد خام" : "Raw Materials") (@Items.Count(x => x.ItemTypeId == 2))
+            </MudChip>
+            <MudChip T="string" Selected="@(SelectedItemTypeId == 3)" OnClick="@(() => FilterByType(3))"
+                     Color="@(SelectedItemTypeId == 3 ? MudBlazor.Color.Info : MudBlazor.Color.Default)"
+                     Variant="@(SelectedItemTypeId == 3 ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
+                     Style="font-weight: 800; cursor: pointer;">
+                @(IsArabic ? "نصف مصنع" : "Semi-Finished") (@Items.Count(x => x.ItemTypeId == 3))
+            </MudChip>
         </div>
     </div>
 
@@ -70,14 +97,39 @@
                             <span style="font-weight: bold;">@item.EnglishName</span>
                         </Template>
                     </RadzenDataGridColumn>
+
+                    <!-- Item Type Badge -->
+                    <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="ItemTypeId" Title="@(IsArabic ? "نوع الصنف" : "Item Type")" Width="130px" TextAlign="Radzen.TextAlign.Center">
+                        <Template Context="item">
+                            @if (item.ItemTypeId == 2)
+                            {
+                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Warning" Style="font-weight: 800;">@(IsArabic ? "مادة خام" : "Raw Material")</MudChip>
+                            }
+                            else if (item.ItemTypeId == 3)
+                            {
+                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Info" Style="font-weight: 800;">@(IsArabic ? "نصف مصنع" : "Semi-Finished")</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary" Style="font-weight: 800;">@(IsArabic ? "صنف بيع" : "Sale Item")</MudChip>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
                     
                     <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="Price" Title="@(IsArabic ? "السعر الأساسي" : "Main Price")" Width="120px" TextAlign="Radzen.TextAlign.Right">
                         <Template Context="item">
-                            <span style="font-weight: bold;">@item.Price?.ToString("0.00")</span>
+                            @if (item.ItemTypeId == 2)
+                            {
+                                <span class="text-muted" style="font-size: 0.85rem;">-</span>
+                            }
+                            else
+                            {
+                                <span style="font-weight: bold;">@item.Price?.ToString("0.00") @(IsArabic ? "ج.م" : "EGP")</span>
+                            }
                         </Template>
                     </RadzenDataGridColumn>
 
-                     <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="CategoryArabicName" Title="@(IsArabic ? "اسم القسم" : "Category")" Width="150px">
+                     <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="CategoryArabicName" Title="@(IsArabic ? "الفئة" : "Category")" Width="150px">
                         <Template Context="item">
                             <span style="font-weight: bold;">@(IsArabic ? item.CategoryArabicName : item.CategoryEnglishName)</span>
                         </Template>
@@ -96,15 +148,30 @@
                         </Template>
                     </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="IsInventory" Title="@(IsArabic ? "تتبع المخزن" : "Inventory Tracking")" Width="140px" TextAlign="Radzen.TextAlign.Center" Visible="@_isInventoryEnabled">
+                    <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="IsInventory" Title="@(IsArabic ? "تتبع المخزون" : "Inventory Tracking")" Width="140px" TextAlign="Radzen.TextAlign.Center" Visible="@_isInventoryEnabled">
                         <Template Context="item">
                             @if (item.IsInventory)
                             {
-                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Success" Style="font-weight: 900;">true</MudChip>
+                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Success" Style="font-weight: 900;">@(IsArabic ? "نعم" : "Yes")</MudChip>
                             }
                             else
                             {
-                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Error" Style="font-weight: 900;">false</MudChip>
+                                <MudChip T="string" Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Error" Style="font-weight: 900;">@(IsArabic ? "لا" : "No")</MudChip>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="MenuSalesItemsToReturnDto" Property="Barcode" Title="@(IsArabic ? "الباركود" : "Barcode")" Width="140px" TextAlign="Radzen.TextAlign.Center" Visible="@_isBarcodeEnabled">
+                        <Template Context="item">
+                            @if (!string.IsNullOrWhiteSpace(item.Barcode))
+                            {
+                                <span style="font-family: monospace; font-weight: 800; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; color: #475569; border: 1px solid #e2e8f0;">
+                                    @item.Barcode
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
                             }
                         </Template>
                     </RadzenDataGridColumn>
@@ -135,13 +202,17 @@
     private bool IsLoading = true;
     private RadzenDataGrid<MenuSalesItemsToReturnDto>? grid;
     private string SearchTerm = "";
+    private int? SelectedItemTypeId = null;
 
     private bool IsArabic => LocalizerService.GetCurrentLanguage() == "ar";
 
     private bool _isInventoryEnabled;
+    private bool _isBarcodeEnabled;
+
     protected override async Task OnInitializedAsync()
     {
         _isInventoryEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableInventoryTracking");
+        _isBarcodeEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableItemBarcode");
         await LoadData();
     }
 
@@ -167,6 +238,13 @@
         }
     }
 
+    private async Task FilterByType(int? typeId)
+    {
+        SelectedItemTypeId = typeId;
+        ApplyFilter();
+        if (grid != null) await grid.FirstPage();
+    }
+
     private async Task OnSearch(ChangeEventArgs args)
     {
         SearchTerm = args.Value?.ToString() ?? "";
@@ -176,20 +254,29 @@
 
     private void ApplyFilter()
     {
-        if (string.IsNullOrWhiteSpace(SearchTerm))
+        IEnumerable<MenuSalesItemsToReturnDto> query = Items;
+
+        if (SelectedItemTypeId.HasValue)
         {
-            FilteredItems = new List<MenuSalesItemsToReturnDto>(Items);
+            if (SelectedItemTypeId == 1)
+                query = query.Where(x => x.ItemTypeId == 1 || x.ItemTypeId == null);
+            else
+                query = query.Where(x => x.ItemTypeId == SelectedItemTypeId.Value);
         }
-        else
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             var term = SearchTerm.ToLower().Trim();
-            FilteredItems = Items.Where(x => 
+            query = query.Where(x => 
                 (x.ArabicName != null && x.ArabicName.ToLower().Contains(term)) ||
                 (x.EnglishName != null && x.EnglishName.ToLower().Contains(term)) ||
+                (x.Barcode != null && x.Barcode.ToLower().Contains(term)) ||
                 x.Id.ToString().Contains(term) ||
                 (x.CategoryArabicName != null && x.CategoryArabicName.ToLower().Contains(term))
-            ).ToList();
+            );
         }
+
+        FilteredItems = query.ToList();
     }
 
     private async Task OpenCreateDialog()
@@ -197,7 +284,7 @@
         var parameters = new DialogParameters 
         { 
             ["IsArabic"] = IsArabic,
-            ["ExistingItems"] = Items // Pass existing items for next ID calculation
+            ["ExistingItems"] = Items
         };
         var options = new MudBlazor.DialogOptions { CloseOnEscapeKey = true, MaxWidth = MudBlazor.MaxWidth.Medium, FullWidth = true };
         var dialog = DialogService.Show<ItemDialog>(IsArabic ? "إضافة صنف جديد" : "Add New Item", parameters, options);
@@ -206,6 +293,7 @@
         if (!result.Canceled)
         {
             _isInventoryEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableInventoryTracking");
+            _isBarcodeEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableItemBarcode");
             await LoadData();
         }
     }
@@ -225,6 +313,7 @@
         if (!result.Canceled)
         {
             _isInventoryEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableInventoryTracking");
+            _isBarcodeEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableItemBarcode");
             await LoadData();
         }
     }
@@ -250,7 +339,8 @@
             {
                 Snackbar.Add(IsArabic ? "تم الحذف بنجاح" : "Deleted successfully", Severity.Success);
                 _isInventoryEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableInventoryTracking");
-            await LoadData();
+                _isBarcodeEnabled = await FeatureSettingsService.IsFeatureEnabledAsync("EnableItemBarcode");
+                await LoadData();
             }
             else
             {

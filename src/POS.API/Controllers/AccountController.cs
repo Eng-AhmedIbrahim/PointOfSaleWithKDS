@@ -1,4 +1,4 @@
-namespace POS.API.Controllers;
+﻿namespace POS.API.Controllers;
 
 public class AccountController : BaseApiController
 {
@@ -75,7 +75,8 @@ public class AccountController : BaseApiController
         if (!ModelState.IsValid)
             return Unauthorized(new ApiResponse(401));
 
-        var user = await _userManager.FindByNameAsync(model.UserName!);
+        var user = _userManager.Users.FirstOrDefault(x => x.DisplayName == model.UserName)
+                   ?? await _userManager.FindByNameAsync(model.UserName!);
         if (user is null || !user.IsActive)
             return Unauthorized(new ApiResponse(401));
 

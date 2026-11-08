@@ -1,4 +1,4 @@
-@page "/transactions/expenses"
+﻿@page "/transactions/expenses"
 @using BlazorBase.ERPFrontServices.ExpenseServices
 @using POS.Contract.Dtos.ReportingDtos
 @inject IExpenseFrontService ExpenseService
@@ -6,6 +6,7 @@
 @inject Radzen.DialogService DialogService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject CommonProperties _commonProperties
 
 <div class="container-fluid py-4" dir="rtl">
     <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Center" class="mb-2" style="font-weight: 700; color: #1a237e;">
@@ -173,15 +174,18 @@
     private async Task LoadUserInfo()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity is { IsAuthenticated: true })
-        {
-            _cashierId = user.Claims.FirstOrDefault(c => c.Type == "sub")?.Value 
-                         ?? user.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "-";
-            _cashierName = user.Identity.Name ?? "System";
-        }
+        var user = authState?.User;
+        string? displayNameClaim = user?.FindFirst("DisplayName")?.Value ?? user?.FindFirst("displayName")?.Value;
+        string? nameClaim = user?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? user?.FindFirst("name")?.Value ?? user?.FindFirst("unique_name")?.Value;
+        _cashierId = user?.Claims?.FirstOrDefault(c => c.Type == "sub")?.Value
+                     ?? user?.Claims?.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                     ?? _commonProperties.CurrentUserId
+                     ?? "-";
+        _cashierName = !string.IsNullOrWhiteSpace(displayNameClaim) ? displayNameClaim
+                     : (!string.IsNullOrWhiteSpace(_commonProperties.CurrentUser) ? _commonProperties.CurrentUser
+                     : (!string.IsNullOrWhiteSpace(nameClaim) ? nameClaim
+                     : (!string.IsNullOrWhiteSpace(user?.Identity?.Name) ? user.Identity.Name : "\u0627\u0644\u0645\u062f\u064a\u0631 \u0627\u0644\u0639\u0627\u0645")));
     }
-
     private async Task LoadExpenses()
     {
         _isLoading = true;

@@ -1,4 +1,4 @@
-using POS.Contract.Dtos.OrderDtos;
+﻿using POS.Contract.Dtos.OrderDtos;
 using System.Collections.Generic;
 
 namespace POS.Contract.Dtos.ReportingDtos;
@@ -63,7 +63,7 @@ public class OverallSummaryDto
     public decimal TotalSalesTax { get; set; }
     public decimal ServiceTotal { get; set; }
     public decimal NetCash => CashAmount - Expenses - RefundAmount;
-    public decimal TotalRevenue => TotalSales - TotalDiscount;
+    public decimal TotalRevenue => TotalSales + TotalDiscount;
     public string Currency { get; set; } = "EGP";
     public decimal VoidAmount { get; set; }
     public decimal FullVoidAmount { get; set; }

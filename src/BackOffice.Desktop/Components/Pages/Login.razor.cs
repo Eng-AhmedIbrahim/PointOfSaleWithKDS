@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 
 namespace BackOffice.Desktop.Components.Pages;
 
@@ -85,7 +85,7 @@ public partial class Login
                     return;
                 }
 
-                _commonProperties.CurrentUser = _userName;
+                _commonProperties.CurrentUser = !string.IsNullOrWhiteSpace(responseContent?.DisplayName) ? responseContent.DisplayName : (!string.IsNullOrWhiteSpace(responseContent?.UserName) ? responseContent.UserName : _userName);
                 _commonProperties.CurrentUserId = responseContent!.UserId;
 
                 //Store token in local storage &update authentication state

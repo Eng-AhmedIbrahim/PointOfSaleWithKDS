@@ -55,13 +55,17 @@ public class AuthService : IAuthService
 
     public async Task<string> CreateTokenAsync(AppUser user, IList<string> roles, List<Claim> roleClaims)
     {
+        var displayName = !string.IsNullOrWhiteSpace(user?.DisplayName) ? user.DisplayName : (user?.UserName ?? string.Empty);
         var authClaims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user?.Id ?? string.Empty),
-            new Claim(ClaimTypes.Name, user?.UserName ?? string.Empty),
-            new Claim(ClaimTypes.NameIdentifier, user?.Id ?? string.Empty)
+            new Claim(ClaimTypes.Name, displayName),
+            new Claim(ClaimTypes.NameIdentifier, user?.Id ?? string.Empty),
+            new Claim("unique_name", user?.UserName ?? string.Empty),
+            new Claim("name", displayName),
+            new Claim("DisplayName", displayName),
+            new Claim("displayName", displayName)
         };
-
         foreach (var role in roles)
         {
             authClaims.Add(new Claim(ClaimTypes.Role, role));
