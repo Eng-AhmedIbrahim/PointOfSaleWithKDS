@@ -1,4 +1,4 @@
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using POS.Contract.Dtos.OrderDtos;
@@ -16,15 +16,16 @@ public class BackOfficeHospitalityDocument : IDocument
     private readonly DateTime _toDate;
     private readonly bool _isEnglish;
     private readonly bool _isThermal;
+    private const string Currency = "ج.م";
 
     public BackOfficeHospitalityDocument(List<OrderDto> orders, string branchName, DateTime fromDate, DateTime toDate, bool isThermal = false, string lang = "ar")
     {
-        _orders = orders ?? new List<OrderDto>();
-        _branchName = branchName;
-        _fromDate = fromDate;
-        _toDate = toDate;
-        _isThermal = isThermal;
-        _isEnglish = (lang ?? "ar").ToLower() == "en";
+        _orders      = orders ?? new List<OrderDto>();
+        _branchName  = branchName;
+        _fromDate    = fromDate;
+        _toDate      = toDate;
+        _isThermal   = isThermal;
+        _isEnglish   = (lang ?? "ar").ToLower() == "en";
     }
 
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -41,12 +42,15 @@ public class BackOfficeHospitalityDocument : IDocument
             else
             {
                 page.Size(PageSizes.A4);
-                page.Margin(1, Unit.Centimetre);
+                page.Margin(1.2f, Unit.Centimetre);
+                page.Header().Element(ComposeA4Header);
+                page.Footer().Element(ComposeA4Footer);
             }
 
             page.PageColor(Colors.White);
-            
-            var baseStyle = TextStyle.Default.FontFamily("Arial", "Noto Sans Arabic").FontSize(_isThermal ? 8 : 10);
+            var baseStyle = TextStyle.Default
+                .FontFamily("Arial", "Noto Sans Arabic")
+                .FontSize(_isThermal ? 8 : 9);
             page.DefaultTextStyle(baseStyle);
 
             if (!_isEnglish)
@@ -54,121 +58,235 @@ public class BackOfficeHospitalityDocument : IDocument
 
             page.Content().Column(col =>
             {
-                col.Spacing(_isThermal ? 3 : 5);
-                ComposeHeader(col);
-                ComposeSummary(col);
-                ComposeTable(col);
-                ComposeFooter(col);
+                col.Spacing(_isThermal ? 2 : 4);
+                if (_isThermal)
+                {
+                    ComposeThermalHeader(col);
+                    ComposeThermalContent(col);
+                    ComposeThermalFooter(col);
+                }
+                else
+                {
+                    ComposeA4KpiCards(col);
+                    ComposeA4Table(col);
+                }
             });
         });
     }
 
-    private void ComposeHeader(ColumnDescriptor col)
+    private void ComposeA4Header(IContainer container)
     {
-        // Branch Name (Black, Center)
-        col.Item().AlignCenter().Text(_branchName).FontSize(_isThermal ? 11 : 14).Bold().FontColor(Colors.Black);
-        
-        // Main Title (Black, Center)
-        col.Item().AlignCenter().Text(_isEnglish ? "Hospitality Report" : "تقرير الضيافة").FontSize(_isThermal ? 12 : 18).Bold().FontColor(Colors.Black);
-        
-        // Period
-        col.Item().AlignCenter().Text(_isEnglish ? $"Period: {_fromDate:dd/MM/yyyy} - {_toDate:dd/MM/yyyy}" : $"الفترة من: {_fromDate:dd/MM/yyyy} إلى: {_toDate:dd/MM/yyyy}").FontSize(_isThermal ? 7 : 10).FontColor(Colors.Grey.Darken2);
-        
-        col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
-    }
-
-    private void ComposeSummary(ColumnDescriptor col)
-    {
-        var totalOrders = _orders.Count;
-        var totalAmount = _orders.Sum(o => o.TotalVoid ?? o.GrandTotal ?? 0);
-
-        col.Item().PaddingVertical(_isThermal ? 2 : 5).Background(Colors.Grey.Lighten4).Padding(_isThermal ? 3 : 8).Row(row =>
+        container.Column(col =>
         {
-            row.RelativeItem().Column(c =>
+            col.Item().Background(Colors.Teal.Darken4).Padding(10).Row(row =>
             {
-                c.Item().Text(_isEnglish ? "Total Orders" : "عدد الطلبات").FontSize(_isThermal ? 7 : 9).Bold();
-                c.Item().Text(totalOrders.ToString()).FontSize(_isThermal ? 10 : 12).Bold();
-            });
-            row.RelativeItem().Column(c =>
-            {
-                c.Item().Text(_isEnglish ? "Total Amount" : "إجمالي القيمة").FontSize(_isThermal ? 7 : 9).Bold();
-                c.Item().Text(totalAmount.ToString("0.##")).FontSize(_isThermal ? 10 : 12).Bold().FontColor(Colors.Black);
+                row.RelativeItem().Column(c =>
+                {
+                    c.Item().Text(_branchName).FontSize(14).Bold().FontColor(Colors.White);
+                    c.Item().Text(_isEnglish ? "Hospitality & Complimentary Report" : "تقرير الضيافة والطلبات المجانية").FontSize(10).FontColor(Colors.Teal.Lighten4);
+                });
+                row.ConstantItem(200).Column(c =>
+                {
+                    c.Item().AlignRight().Text(_isEnglish
+                        ? $"From: {_fromDate:dd/MM/yyyy}  To: {_toDate:dd/MM/yyyy}"
+                        : $"من: {_fromDate:dd/MM/yyyy}  إلى: {_toDate:dd/MM/yyyy}")
+                        .FontSize(8).FontColor(Colors.White);
+                    c.Item().AlignRight().Text(DateTime.Now.ToString("dd/MM/yyyy HH:mm")).FontSize(8).FontColor(Colors.Teal.Lighten4);
+                });
             });
         });
     }
 
-    private void ComposeTable(ColumnDescriptor col)
+    private void ComposeA4Footer(IContainer container)
     {
-        col.Item().PaddingTop(2).Table(t =>
+        container.BorderTop(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Row(row =>
+        {
+            row.RelativeItem().Text(_isEnglish ? "Hospitality Report" : "تقرير الضيافة")
+                .FontSize(8).FontColor(Colors.Grey.Medium);
+            row.ConstantItem(100).AlignRight().Text(txt =>
+            {
+                txt.Span(_isEnglish ? "Page " : "صفحة ").FontSize(8).FontColor(Colors.Grey.Medium);
+                txt.CurrentPageNumber().FontSize(8).Bold();
+                txt.Span(_isEnglish ? " of " : " من ").FontSize(8).FontColor(Colors.Grey.Medium);
+                txt.TotalPages().FontSize(8).Bold();
+            });
+        });
+    }
+
+    private void ComposeA4KpiCards(ColumnDescriptor col)
+    {
+        int totalOrders = _orders.Count;
+        decimal totalAmount = _orders.Sum(o => o.TotalVoid ?? o.GrandTotal ?? 0);
+        decimal avgAmount = totalOrders > 0 ? totalAmount / totalOrders : 0;
+
+        col.Item().PaddingBottom(8).Row(row =>
+        {
+            KpiCard(row.RelativeItem(), _isEnglish ? "Total Hospitality" : "إجمالي قيمة الضيافة",
+                $"{totalAmount:0.##} {Currency}", Colors.Teal.Darken4, Colors.Teal.Lighten5);
+            row.ConstantItem(8);
+            KpiCard(row.RelativeItem(), _isEnglish ? "Orders Count" : "عدد الطلبات",
+                $"{totalOrders}", Colors.Green.Darken4, Colors.Green.Lighten5);
+            row.ConstantItem(8);
+            KpiCard(row.RelativeItem(), _isEnglish ? "Avg / Order" : "متوسط الطلب",
+                $"{avgAmount:0.##} {Currency}", Colors.Blue.Darken4, Colors.Blue.Lighten5);
+        });
+    }
+
+    private static void KpiCard(IContainer c, string label, string value, Color textColor, Color bgColor)
+    {
+        c.Background(bgColor).Border(1).BorderColor(textColor).Padding(8).Column(col =>
+        {
+            col.Item().Text(label).FontSize(8).FontColor(textColor);
+            col.Item().Text(value).FontSize(11).Bold().FontColor(textColor);
+        });
+    }
+
+    private (string Responsible, string Reason) ExtractInfo(OrderDto order)
+    {
+        string resp = order.HospitalityResponsibleName ?? string.Empty;
+        string reason = order.HospitalityReason ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(order.OrderNotice) && order.OrderNotice.Contains("(ضيافة:") && order.OrderNotice.Contains("السبب:"))
+        {
+            try
+            {
+                var note = order.OrderNotice;
+                int startResp = note.IndexOf("(ضيافة:") + 7;
+                int endResp = note.IndexOf(")", startResp);
+                if (startResp > 6 && endResp > startResp)
+                    resp = note.Substring(startResp, endResp - startResp).Trim();
+
+                int startReason = note.IndexOf("السبب:") + 6;
+                if (startReason > 5)
+                    reason = note.Substring(startReason).Trim();
+            }
+            catch { }
+        }
+
+        if (string.IsNullOrEmpty(resp)) resp = order.CashierName ?? "-";
+        if (string.IsNullOrEmpty(reason)) reason = order.CustomerName ?? order.TakeAwayCustomerName ?? "ضيافة عامة";
+
+        return (resp, reason);
+    }
+
+    private void ComposeA4Table(ColumnDescriptor col)
+    {
+        col.Item().Table(t =>
         {
             t.ColumnsDefinition(cd =>
             {
-                cd.RelativeColumn(1.2f); // ID
-                cd.RelativeColumn(3);    // Responsible
-                cd.RelativeColumn(3.5f); // Reason
+                cd.ConstantColumn(50);   // Order#
+                cd.RelativeColumn(2);    // Responsible
+                cd.RelativeColumn(2.5f); // Reason
+                cd.RelativeColumn(2);    // Date & Time
                 cd.RelativeColumn(2);    // Amount
-                cd.RelativeColumn(1.8f); // Time
             });
 
             t.Header(h =>
             {
-                h.Cell().Border(1).Background(Colors.Grey.Lighten2).Padding(2).AlignCenter().Text(_isEnglish ? "#" : "الرقم").Bold();
-                h.Cell().Border(1).Background(Colors.Grey.Lighten2).Padding(2).AlignCenter().Text(_isEnglish ? "Responsible" : "المسئول").Bold();
-                h.Cell().Border(1).Background(Colors.Grey.Lighten2).Padding(2).AlignCenter().Text(_isEnglish ? "Reason" : "السبب").Bold();
-                h.Cell().Border(1).Background(Colors.Grey.Lighten2).Padding(2).AlignCenter().Text(_isEnglish ? "Amt" : "القيمة").Bold();
-                h.Cell().Border(1).Background(Colors.Grey.Lighten2).Padding(2).AlignCenter().Text(_isEnglish ? "Time" : "الوقت").Bold();
+                void Hdr(IContainer cell, string text) =>
+                    cell.Background(Colors.Teal.Darken4).Padding(5).AlignCenter()
+                        .Text(text).FontSize(9).Bold().FontColor(Colors.White);
+
+                Hdr(h.Cell(), _isEnglish ? "Order#" : "رقم");
+                Hdr(h.Cell(), _isEnglish ? "Responsible" : "المسؤول");
+                Hdr(h.Cell(), _isEnglish ? "Reason" : "السبب");
+                Hdr(h.Cell(), _isEnglish ? "Date & Time" : "التاريخ والوقت");
+                Hdr(h.Cell(), _isEnglish ? "Amount" : "القيمة");
             });
 
-            foreach (var order in _orders)
+            int rowIdx = 0;
+            foreach (var order in _orders.OrderBy(o => o.OrderDate))
             {
-                t.Cell().Border(1).Padding(2).AlignCenter().Text($"#{order.OrderId}").FontSize(_isThermal ? 7 : 9);
-                
-                string responsibleName = order.HospitalityResponsibleName;
-                string reason = order.HospitalityReason;
+                var (resp, reason) = ExtractInfo(order);
+                decimal amt = order.TotalVoid ?? order.GrandTotal ?? 0;
+                var bgColor = rowIdx % 2 == 0 ? Colors.White : Colors.Grey.Lighten5;
 
-                // Auto-parse from OrderNotice if specific pattern is found: (ضيافة: Administrator) - السبب: ضيافة IT
-                if (!string.IsNullOrEmpty(order.OrderNotice) && order.OrderNotice.Contains("(ضيافة:") && order.OrderNotice.Contains("السبب:"))
+                void DataCell(IContainer cell, string text, bool bold = false)
                 {
-                    try
-                    {
-                        var note = order.OrderNotice;
-                        int startResp = note.IndexOf("(ضيافة:") + 7;
-                        int endResp = note.IndexOf(")", startResp);
-                        if (startResp > 6 && endResp > startResp)
-                        {
-                            responsibleName = note.Substring(startResp, endResp - startResp).Trim();
-                        }
-                        
-                        int startReason = note.IndexOf("السبب:") + 6;
-                        if (startReason > 5)
-                        {
-                            reason = note.Substring(startReason).Trim();
-                        }
-                    }
-                    catch { /* Fallback to existing logic if parsing fails */ }
+                    var txt = cell.Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten2)
+                        .Padding(4).AlignCenter().Text(text).FontSize(9);
+                    if (bold) txt.Bold();
                 }
 
-                // Fallbacks if parsing didn't find them or they are empty
-                if (string.IsNullOrEmpty(responsibleName)) responsibleName = order.CashierName ?? "-";
-                if (string.IsNullOrEmpty(reason)) reason = order.CustomerName ?? order.TakeAwayCustomerName ?? "System";
+                void DataCellColored(IContainer cell, string text, Color clr, bool bold = false)
+                {
+                    var txt = cell.Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten2)
+                        .Padding(4).AlignCenter().Text(text).FontSize(9).FontColor(clr);
+                    if (bold) txt.Bold();
+                }
 
-                t.Cell().Border(1).Padding(2).AlignCenter().Text(responsibleName).FontSize(_isThermal ? 7 : 8).Bold();
-                t.Cell().Border(1).Padding(2).AlignCenter().Text(reason).FontSize(_isThermal ? 7 : 8);
-                
-                var amount = order.TotalVoid ?? order.GrandTotal ?? 0;
-                t.Cell().Border(1).Padding(2).AlignCenter().Text(amount.ToString("0.##")).FontSize(_isThermal ? 7 : 9).Bold();
-                
-                t.Cell().Border(1).Padding(2).AlignCenter().Text(order.OrderDate?.ToString("HH:mm") ?? "-").FontSize(_isThermal ? 7 : 9);
+                DataCellColored(t.Cell(), $"#{order.OrderId}", Colors.Teal.Darken3, true);
+                DataCellColored(t.Cell(), resp, Colors.Teal.Darken4, true);
+                DataCell(t.Cell(), reason);
+                DataCell(t.Cell(), order.OrderDate?.ToString("dd/MM/yyyy HH:mm") ?? "-");
+                DataCellColored(t.Cell(), $"{amt:0.##} {Currency}", Colors.Green.Darken4, true);
+
+                rowIdx++;
             }
+
+            decimal totalAmount = _orders.Sum(o => o.TotalVoid ?? o.GrandTotal ?? 0);
+            t.Cell().ColumnSpan(4).Background(Colors.Teal.Darken4).Padding(6).AlignRight()
+                .Text(_isEnglish ? "Grand Total" : "الإجمالي الكلي")
+                .FontSize(10).Bold().FontColor(Colors.White);
+            t.Cell().Background(Colors.Teal.Darken4).Padding(6).AlignCenter()
+                .Text($"{totalAmount:0.##} {Currency}").FontSize(10).Bold().FontColor(Colors.White);
         });
     }
 
-    private void ComposeFooter(ColumnDescriptor col)
+    private void ComposeThermalHeader(ColumnDescriptor col)
     {
-        col.Item().PaddingTop(10).AlignCenter().Text(text =>
+        col.Item().AlignCenter().Text(_branchName).FontSize(12).Bold();
+        col.Item().AlignCenter().Text(_isEnglish ? "Hospitality Report" : "تقرير الضيافة").FontSize(10).Bold();
+        col.Item().AlignCenter().Text($"{_fromDate:dd/MM/yyyy} - {_toDate:dd/MM/yyyy}").FontSize(8).FontColor(Colors.Grey.Darken2);
+        col.Item().LineHorizontal(1).LineColor(Colors.Black);
+    }
+
+    private void ComposeThermalContent(ColumnDescriptor col)
+    {
+        int totalOrders = _orders.Count;
+        decimal totalAmount = _orders.Sum(o => o.TotalVoid ?? o.GrandTotal ?? 0);
+
+        col.Item().Row(row =>
         {
-            text.Span(_isEnglish ? "Printed at: " : "طبع في: ").FontSize(7);
-            text.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")).FontSize(7);
+            row.RelativeItem().Text(_isEnglish ? "Orders Count:" : "عدد الطلبات:").FontSize(8);
+            row.ConstantItem(50).AlignRight().Text(totalOrders.ToString()).FontSize(8).Bold();
         });
+        col.Item().Row(row =>
+        {
+            row.RelativeItem().Text(_isEnglish ? "Total Amount:" : "إجمالي القيمة:").FontSize(8);
+            row.ConstantItem(70).AlignRight().Text($"{totalAmount:0.##} {Currency}").FontSize(8).Bold().FontColor(Colors.Teal.Darken3);
+        });
+        col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Medium);
+
+        foreach (var order in _orders.OrderBy(o => o.OrderDate))
+        {
+            var (resp, reason) = ExtractInfo(order);
+            decimal amt = order.TotalVoid ?? order.GrandTotal ?? 0;
+
+            col.Item().Row(row =>
+            {
+                row.RelativeItem().Text($"#{order.OrderId} ({resp})").FontSize(8);
+                row.ConstantItem(60).AlignRight().Text($"{amt:0.##}").FontSize(8).Bold();
+            });
+            if (!string.IsNullOrEmpty(reason))
+            {
+                col.Item().PaddingLeft(8).Text($"→ {reason}").FontSize(7).FontColor(Colors.Grey.Darken2);
+            }
+        }
+
+        col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Medium);
+        col.Item().Row(row =>
+        {
+            row.RelativeItem().Text(_isEnglish ? "TOTAL" : "الإجمالي").FontSize(9).Bold();
+            row.ConstantItem(70).AlignRight().Text($"{totalAmount:0.##} {Currency}").FontSize(9).Bold();
+        });
+    }
+
+    private void ComposeThermalFooter(ColumnDescriptor col)
+    {
+        col.Item().LineHorizontal(1).LineColor(Colors.Black);
+        col.Item().AlignCenter().Text($"{(_isEnglish ? "Printed: " : "طُبع: ")}{DateTime.Now:dd/MM/yyyy HH:mm}")
+            .FontSize(7).FontColor(Colors.Grey.Darken1);
     }
 }

@@ -1,4 +1,4 @@
-namespace POS.Reports.ReportsMakerServices;
+﻿namespace POS.Reports.ReportsMakerServices;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;

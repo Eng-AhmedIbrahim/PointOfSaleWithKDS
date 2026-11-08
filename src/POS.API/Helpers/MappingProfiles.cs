@@ -404,6 +404,20 @@ public class MappingProfiles : Profile
 
         CreateMap<PosFeatureSetting, POS.Contract.Dtos.OrderDto.PosFeatureSettingToReturnDto>().ReverseMap();
         CreateMap<OrderSetting, POS.Contract.Dtos.OrderDto.OrderSettingToReturnDto>().ReverseMap();
+
+        // Expense mapping
+        CreateMap<POS.Core.Entities.Payment.Expense, POS.Contract.Dtos.ReportingDtos.ExpenseDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category ?? string.Empty))
+            .ForMember(dest => dest.CreatedById, opt => opt.MapFrom(src => src.CreatedById))
+            .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => src.CreatedByName))
+            .ForMember(dest => dest.SpentBy, opt => opt.MapFrom(src => src.SpentBy))
+            .ForMember(dest => dest.IsPayoutFromDrawer, opt => opt.MapFrom(src => src.IsPayoutFromDrawer))
+            .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.BranchId))
+            .ForMember(dest => dest.ShiftId, opt => opt.MapFrom(src => src.ShiftId));
     }
 }
 
