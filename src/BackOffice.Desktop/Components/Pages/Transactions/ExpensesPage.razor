@@ -1,7 +1,11 @@
 ﻿@page "/transactions/expenses"
 @using BlazorBase.ERPFrontServices.ExpenseServices
+@using BlazorBase.ERPFrontServices.AppDateServices
+@using Microsoft.AspNetCore.Authorization
 @using POS.Contract.Dtos.ReportingDtos
 @inject IExpenseFrontService ExpenseService
+@inject IAppDateService AppDateService
+@inject IAuthorizationService AuthorizationService
 @inject Radzen.NotificationService NotificationService
 @inject Radzen.DialogService DialogService
 @inject AuthenticationStateProvider AuthStateProvider
@@ -122,12 +126,15 @@
                             </Template>
                         </RadzenDataGridColumn>
 
-                        <RadzenDataGridColumn TItem="ExpenseDto" Title="حذف" Width="60px" TextAlign="TextAlign.Center" Sortable="false">
-                            <Template Context="data">
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" 
-                                              Click="@(() => ConfirmDelete(data.Id))" />
-                            </Template>
-                        </RadzenDataGridColumn>
+                        @if (_canDeleteExpense)
+                        {
+                            <RadzenDataGridColumn TItem="ExpenseDto" Title="حذف" Width="60px" TextAlign="TextAlign.Center" Sortable="false">
+                                <Template Context="data">
+                                    <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" 
+                                                  Click="@(() => ConfirmDelete(data.Id))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        }
                     </Columns>
                 </RadzenDataGrid>
 
@@ -149,9 +156,11 @@
     private ExpenseDto _newExpense = new() { Category = "مشتريات خامات", Date = DateTime.Now };
     private bool _isLoading = true;
     private bool _isSaving = false;
+    private bool _canDeleteExpense = false;
     
-    private DateTime? _fromDate = DateTime.Today;
-    private DateTime? _toDate = DateTime.Today;
+    private DateTime? _currentAppDate;
+    private DateTime? _fromDate;
+    private DateTime? _toDate;
     
     private string _cashierId = "-";
     private string _cashierName = "Unknown";
@@ -167,6 +176,29 @@
 
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            var appDate = await AppDateService.GetAppDate();
+            if (appDate != null && appDate.PosDate != default)
+            {
+                _currentAppDate = appDate.PosDate;
+                _fromDate = appDate.PosDate;
+                _toDate = appDate.PosDate;
+                _newExpense.Date = appDate.PosDate.Date + DateTime.Now.TimeOfDay;
+            }
+            else
+            {
+                _fromDate = DateTime.Today;
+                _toDate = DateTime.Today;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error retrieving AppDate: {ex.Message}");
+            _fromDate = DateTime.Today;
+            _toDate = DateTime.Today;
+        }
+
         await LoadUserInfo();
         await LoadExpenses();
     }
@@ -175,6 +207,15 @@
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState?.User;
+
+        if (user?.Identity is { IsAuthenticated: true })
+        {
+            var isAdmin = user.IsInRole("Admin") || user.IsInRole("Administrator") 
+                       || user.HasClaim("role", "Administrator") || user.HasClaim("role", "Admin")
+                       || (user.Identity?.Name?.Equals("Administrator", StringComparison.OrdinalIgnoreCase) ?? false);
+            _canDeleteExpense = isAdmin || (await AuthorizationService.AuthorizeAsync(user, "CanDeleteExpenseAtBackOffice")).Succeeded;
+        }
+
         // Try all claim types that may hold the display name
         string? displayNameClaim = user?.FindFirst("DisplayName")?.Value ?? user?.FindFirst("displayName")?.Value;
         string? nameClaim = user?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
@@ -189,15 +230,16 @@
         _cashierName = candidates.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c) && c != "System" && c != "system")
                      ?? displayNameClaim
                      ?? _commonProperties.CurrentUser
-                     ?? "\u0627\u0644\u0645\u062f\u064a\u0631 \u0627\u0644\u0639\u0627\u0645";
+                     ?? "المدير العام";
     }
+
     private async Task LoadExpenses()
     {
         _isLoading = true;
         try
         {
-            var from = _fromDate ?? DateTime.Today;
-            var to = _toDate ?? DateTime.Today;
+            var from = _fromDate ?? _currentAppDate ?? DateTime.Today;
+            var to = _toDate ?? _currentAppDate ?? DateTime.Today;
             _expenses = await ExpenseService.GetExpenses(from, to);
         }
         catch (Exception ex)
@@ -223,13 +265,21 @@
         {
             _newExpense.CreatedById = _cashierId;
             _newExpense.CreatedByName = _cashierName;
-            _newExpense.Date = DateTime.Now;
+            
+            DateTime expenseDate = _currentAppDate.HasValue 
+                ? _currentAppDate.Value.Date + DateTime.Now.TimeOfDay 
+                : DateTime.Now;
+            _newExpense.Date = expenseDate;
             _newExpense.IsPayoutFromDrawer = true;
 
             await ExpenseService.AddExpense(_newExpense);
             
             NotificationService.Notify(NotificationSeverity.Success, "نجاح", "تم حفظ إذن الصرف بنجاح");
-            _newExpense = new ExpenseDto { Category = "مشتريات خامات", Date = DateTime.Now };
+            _newExpense = new ExpenseDto 
+            { 
+                Category = "مشتريات خامات", 
+                Date = _currentAppDate.HasValue ? _currentAppDate.Value.Date + DateTime.Now.TimeOfDay : DateTime.Now 
+            };
             await LoadExpenses();
         }
         catch (Exception ex)
@@ -244,6 +294,12 @@
 
     private async Task ConfirmDelete(int id)
     {
+        if (!_canDeleteExpense)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "تنبيه", "ليس لديك صلاحية لحذف المصروفات");
+            return;
+        }
+
         var result = await DialogService.Confirm("هل أنت متأكد من حذف إذن الصرف هذا؟", "تأكيد الحذف", new ConfirmOptions() { OkButtonText = "حذف", CancelButtonText = "إلغاء" });
 
         if (result == true)

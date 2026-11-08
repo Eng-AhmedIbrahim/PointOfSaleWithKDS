@@ -158,7 +158,8 @@ public class BackOfficePnLDocument : IDocument
         decimal totalDisc    = _summary.Overall.TotalDiscount;
         decimal netSales     = grossSales - totalDisc;
         decimal tax          = _summary.Overall.TotalSalesTax;
-        decimal service      = _summary.Overall.ServiceTotal;
+        decimal dineInService = _summary.DineIn?.Service ?? 0;
+        decimal deliveryFees  = _summary.Delivery?.DeliveryFees > 0 ? _summary.Delivery.DeliveryFees : (_summary.Delivery?.Service ?? 0);
         decimal totalExpense = _summary.DetailedExpenses?.Sum(e => e.Amount) ?? _summary.Overall.Expenses;
         decimal netProfit    = netSales - totalExpense;
 
@@ -178,7 +179,8 @@ public class BackOfficePnLDocument : IDocument
             AddRow(t, _isEnglish ? "Gross Sales" : "إجمالي المبيعات", $"{grossSales:0.##} {Currency}", isBold: false);
             AddRowColored(t, _isEnglish ? "Less: Discounts" : "يُخصم: الخصومات والتخفيضات", $"-{totalDisc:0.##} {Currency}", Colors.Orange.Darken3);
             AddRow(t, _isEnglish ? "Tax Collected" : "ضريبة القيمة المضافة", $"{tax:0.##} {Currency}");
-            AddRow(t, _isEnglish ? "Service & Delivery" : "خدمة الصالة والتوصيل", $"{service:0.##} {Currency}");
+            AddRow(t, _isEnglish ? "Dine-In Service Charge" : "خدمة الصالة", $"{dineInService:0.##} {Currency}");
+            AddRow(t, _isEnglish ? "Delivery Fees / Service" : "خدمة التوصيل", $"{deliveryFees:0.##} {Currency}");
             AddRowColored(t, _isEnglish ? "NET SALES" : "صافي المبيعات", $"{netSales:0.##} {Currency}", Colors.Green.Darken4, Colors.Green.Lighten5, isBold: true);
 
             // 2. Expenses Header
