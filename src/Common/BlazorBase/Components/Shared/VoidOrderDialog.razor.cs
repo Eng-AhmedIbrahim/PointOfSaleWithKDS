@@ -269,14 +269,18 @@ public partial class VoidOrderDialog
             bool result;
             if (isFullVoid)
             {
+                if (DistributionOrder != null) DistributionOrder.OrderState = "Voided";
+                if (Order != null) Order.OrderState = "Voided";
                 result = await _voidErpService.VoidOrder(OrderId, Reason, voidBy, voidByName, ReturnToStock);
             }
             else
             {
                 var voidDtos = itemsToVoid.Select(i =>
                 {
-                    int detailId = DistributionOrder != null ? i.DistributionItem!.Id : i.OriginalItem!.Id;
-                    return new OrderItemVoidDto(detailId, (int)i.QuantityToVoid);
+                    int detailId = DistributionOrder != null 
+                        ? (i.DistributionItem?.DatabaseId > 0 ? i.DistributionItem.DatabaseId : i.DistributionItem?.Id ?? 0)
+                        : (i.OriginalItem?.Id ?? 0);
+                    return new OrderItemVoidDto(detailId, i.QuantityToVoid);
                 }).ToList();
 
                 result = await _voidErpService.VoidItems(OrderId, voidDtos, Reason, voidBy, voidByName, ReturnToStock);

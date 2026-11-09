@@ -53,14 +53,17 @@ public class ReceiptDocument : IDocument
     private void AddHeader(ref ColumnDescriptor column)
     {
         // Store Name at the top
-        column.Item()
-            .Text(text =>
-            {
-                text.Span(receipt.StoreName)
-                    .Bold()
-                    .FontSize(18);
-                text.AlignCenter();
-            });
+        if (!string.IsNullOrWhiteSpace(receipt.StoreName) && !receipt.StoreName.Equals("Store", StringComparison.OrdinalIgnoreCase) && !receipt.StoreName.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+        {
+            column.Item()
+                .Text(text =>
+                {
+                    text.Span(receipt.StoreName)
+                        .Bold()
+                        .FontSize(18);
+                    text.AlignCenter();
+                });
+        }
 
         // 🖼️ Logo section underneath Store Name
         if (!string.IsNullOrEmpty(receipt.LogoPath) && File.Exists(receipt.LogoPath))
@@ -155,7 +158,7 @@ public class ReceiptDocument : IDocument
             .PaddingTop(1)
             .Text(text =>
             {
-                if (receipt.IsCopy)
+                if (receipt.IsCopy && !receipt.IsVoid)
                 {
                     text.Span("*********COPY**********")
                         .Bold()
@@ -172,7 +175,7 @@ public class ReceiptDocument : IDocument
                         .Bold()
                         .FontSize(18);
                 }
-                
+
                 text.AlignCenter();
             });
 

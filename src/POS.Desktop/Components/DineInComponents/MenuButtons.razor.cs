@@ -193,8 +193,8 @@ public partial class MenuButtons : IDisposable
         {
             var parameters = new DialogParameters<VoidOrderDialog>();
             parameters.Add(x => x.OrderId, orderDetails.DatabaseId);
-            parameters.Add(x => x.IsDistribution, true);
-            parameters.Add(x => x.IsDineIn, false);
+            parameters.Add(x => x.IsDistribution, false);
+            parameters.Add(x => x.IsDineIn, true);
 
             var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = false };
             var dialog = await _dialogService.ShowAsync<VoidOrderDialog>(Localizer["Distribution_VoidOrderTitle"], parameters, options);

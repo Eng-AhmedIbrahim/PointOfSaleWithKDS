@@ -137,8 +137,8 @@ public class DesktopPrintOrderService : IPrintOrderService
             var currentBranch = branch.ElementAtOrDefault(0);
             var firstBranch = branch.ElementAtOrDefault(0);
             var receiptName = !string.IsNullOrWhiteSpace(currentBranch?.Name) ? currentBranch.Name : firstBranch?.Name;
-            if (string.IsNullOrWhiteSpace(receiptName) || receiptName.Equals("Store", StringComparison.OrdinalIgnoreCase))
-                receiptName = firstBranch?.Name ?? "Store";
+            if (string.IsNullOrWhiteSpace(receiptName) || receiptName.Equals("Store", StringComparison.OrdinalIgnoreCase) || receiptName.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+                receiptName = "";
 
             var receipt = new DineInReceipt()
             {
@@ -372,6 +372,11 @@ public class DesktopPrintOrderService : IPrintOrderService
                 order.OrderSettings = _commonProperties.OrderSettings;
             }
 
+            if (order.OrderState == "Voided")
+            {
+                isCopy = false; // Never treat a voided order reprint as a simple copy!
+            }
+
             if (order.OrderType == "DineIn")
             {
                 var dineInOrderDetails = new DineInOrderDetails
@@ -503,8 +508,8 @@ public class DesktopPrintOrderService : IPrintOrderService
             var currentBranch = branch.ElementAtOrDefault(0);
             var firstBranch = branch.ElementAtOrDefault(0);
             var receiptName = !string.IsNullOrWhiteSpace(orderDto.BranchName) ? orderDto.BranchName : firstBranch?.Name;
-            if (string.IsNullOrWhiteSpace(receiptName) || receiptName.Equals("Store", StringComparison.OrdinalIgnoreCase))
-                receiptName = firstBranch?.Name ?? "Store";
+            if (string.IsNullOrWhiteSpace(receiptName) || receiptName.Equals("Store", StringComparison.OrdinalIgnoreCase) || receiptName.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+                receiptName = "";
 
             var receipt = new Receipt()
             {
@@ -592,7 +597,7 @@ public class DesktopPrintOrderService : IPrintOrderService
 
                 if (string.IsNullOrEmpty(targetPrinterName)) continue;
 
-                bool isActuallyCopy = isCopy || (currentPrintCount > 1) || (i > 1);
+                bool isActuallyCopy = !receipt.IsVoid && (isCopy || (currentPrintCount > 1) || (i > 1));
 
                 string pathToPrint;
                 if (isActuallyCopy)
@@ -1478,7 +1483,7 @@ public class DesktopPrintOrderService : IPrintOrderService
                 }
                 else if (string.Equals(order.OrderType, "TakeAway", StringComparison.OrdinalIgnoreCase))
                 {
-                    await PrintTakeAwayLocally(order, order);
+                    await PrintTakeAwayLocally(order, order, isCopy: false);
                 }
             }
             finally

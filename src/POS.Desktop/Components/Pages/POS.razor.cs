@@ -47,7 +47,11 @@ public partial class POS
 
             _stateChangedHandler = async () => 
             {
-                try { await InvokeAsync(StateHasChanged); } catch { }
+                try 
+                { 
+                    UpdateTableItemCount();
+                    await InvokeAsync(StateHasChanged); 
+                } catch { }
             };
 
             _commonProperties.OnChange += _stateChangedHandler;

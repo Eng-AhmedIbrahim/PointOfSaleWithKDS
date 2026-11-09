@@ -126,7 +126,7 @@
                         <MudTooltip Placement="Placement.Bottom" Color="Color.Dark">
                             <ChildContent>
                                 <span style="color:#ef4444; font-weight:900; cursor:pointer;">
-                                    @context.GrandTotal?.ToString("N2")
+                                    <span style="text-decoration: line-through;">@(((context.VoidAmount > 0 ? context.VoidAmount : context.GrandTotal) ?? 0).ToString("N2"))</span>
                                     <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Style="font-size:14px; margin-right:2px;" />
                                 </span>
                             </ChildContent>
@@ -156,6 +156,12 @@
                     else
                     {
                         <b class="total-text" style="font-weight: 950; color: #1e293b; font-family: 'Outfit', sans-serif;">@context.GrandTotal?.ToString("N2")</b>
+                        @if ((context.VoidAmount ?? context.TotalVoid ?? 0) > 0)
+                        {
+                            <div style="font-size: 11px; color: #ef4444; font-weight: 700;">
+                                (ملغي: @((context.VoidAmount ?? context.TotalVoid)?.ToString("N2")))
+                            </div>
+                        }
                     }
                 </MudTd>
                 <MudTd style="text-align: center;">

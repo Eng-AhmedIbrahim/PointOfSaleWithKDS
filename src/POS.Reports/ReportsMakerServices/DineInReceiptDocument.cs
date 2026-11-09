@@ -54,14 +54,17 @@ public class DineInReceiptDocument : IDocument
     private void AddHeader(ref ColumnDescriptor column)
     {
 
-        column.Item()
-           .Text(text =>
-           {
-               text.Span(receipt.StoreName)
-                   .Bold()
-                   .FontSize(18);
-               text.AlignCenter();
-           });
+        if (!string.IsNullOrWhiteSpace(receipt.StoreName) && !receipt.StoreName.Equals("Store", StringComparison.OrdinalIgnoreCase) && !receipt.StoreName.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+        {
+            column.Item()
+               .Text(text =>
+               {
+                   text.Span(receipt.StoreName)
+                       .Bold()
+                       .FontSize(18);
+                   text.AlignCenter();
+               });
+        }
 
         if (!string.IsNullOrEmpty(receipt.LogoPath) && File.Exists(receipt.LogoPath))
         {
@@ -163,7 +166,7 @@ public class DineInReceiptDocument : IDocument
                         .FontColor(Colors.Red.Medium);
                     text.EmptyLine();
                 }
-                else if (receipt.IsCopy)
+                else if (receipt.IsCopy && !receipt.IsVoid)
                 {
                     text.Span("*********COPY**********")
                         .Bold()
@@ -179,7 +182,7 @@ public class DineInReceiptDocument : IDocument
                         .FontSize(18);
                 }
 
-                if (!receipt.IsClosing && receipt.IsCopy)
+                if (!receipt.IsClosing && receipt.IsCopy && !receipt.IsVoid)
                 {
                     text.EmptyLine();
                     text.Span("*********COPY**********")

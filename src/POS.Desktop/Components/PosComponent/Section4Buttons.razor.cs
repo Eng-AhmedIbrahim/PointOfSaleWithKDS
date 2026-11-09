@@ -669,17 +669,21 @@ public partial class Section4Buttons
                     object itemObj = voidedItem.GetType().GetProperty("Item")?.GetValue(voidedItem, null);
                     var item = itemObj as TableItem;
                     
-                    int qtyToVoid = 0;
+                    decimal qtyToVoid = 0m;
                     var qtyProp = voidedItem.GetType().GetProperty("QuantityToVoid");
                     if (qtyProp != null)
-                        qtyToVoid = (int)qtyProp.GetValue(voidedItem, null);
+                    {
+                        var rawVal = qtyProp.GetValue(voidedItem, null);
+                        if (rawVal != null)
+                            qtyToVoid = Convert.ToDecimal(rawVal);
+                    }
                         
                     string reason = "";
                     var reasonProp = voidedItem.GetType().GetProperty("Reason");
                     if (reasonProp != null)
-                        reason = (string)reasonProp.GetValue(voidedItem, null);
+                        reason = (string)reasonProp.GetValue(voidedItem, null) ?? "";
 
-                    if (item != null)
+                    if (item != null && qtyToVoid > 0)
                     {
                         // Create a record of the voided item
                         var voidedRecord = item.Clone();
@@ -690,13 +694,13 @@ public partial class Section4Buttons
                         voidedRecord.VoidTime = DateTime.Now;
                         voidedRecord.VoidBy = _commonProperties.CurrentUserId;
                         voidedRecord.VoidByName = _commonProperties.CurrentUser;
-                        voidedRecord.Total = voidedRecord.Price * qtyToVoid;
+                        voidedRecord.Total = (voidedRecord.Price ?? 0m) * qtyToVoid;
                         voidedRecord.TotalAmount = voidedRecord.Total;
 
                         _commonProperties.VoidedTableItems.Add(voidedRecord);
 
                         // Find the item in the current order
-                        var orderItem = _commonProperties.TableItems.FirstOrDefault(x => x == item);
+                        var orderItem = _commonProperties.TableItems.FirstOrDefault(x => x == item || (x.Id == item.Id && x.DatabaseId == item.DatabaseId));
                         if (orderItem != null)
                         {
                             if (qtyToVoid >= orderItem.Quantity)
@@ -708,7 +712,7 @@ public partial class Section4Buttons
                             {
                                 // Reduce quantity
                                 orderItem.Quantity -= qtyToVoid;
-                                orderItem.Total = orderItem.Quantity * orderItem.Price;
+                                orderItem.Total = orderItem.Quantity * (orderItem.Price ?? 0m);
                                 orderItem.TotalAmount = orderItem.Total - (orderItem.TotalDiscountPrice ?? 0);
                             }
                         }

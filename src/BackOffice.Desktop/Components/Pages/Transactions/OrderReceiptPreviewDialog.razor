@@ -24,7 +24,10 @@
                     
                     @* ════════ HEADER ════════ *@
                     <div class="text-center mb-4">
-                        <div class="store-name-large">@(_commonProperties.BranchDetails?.Name ?? "Store Name")</div>
+                        @if (!string.IsNullOrWhiteSpace(BranchNameDisplay))
+                        {
+                            <div class="store-name-large">@BranchNameDisplay</div>
+                        }
                         
                         @if (_previewMode == "Customer" && !string.IsNullOrEmpty(_logoBase64))
                         {
@@ -36,7 +39,11 @@
                         <div class="order-number-box mt-3">
                             <div class="order-id">@Order.OrderId</div>
                             
-                            @if (_previewMode == "Customer")
+                            @if (Order.OrderState == "Voided")
+                            {
+                                <div class="void-banner-box">X  ملغي  X</div>
+                            }
+                            else if (_previewMode == "Customer")
                             {
                                 <div class="copy-label-red">*********COPY**********</div>
                             }
@@ -46,7 +53,10 @@
                             @if (_previewMode == "Kitchen")
                             {
                                 <div class="kitchen-header">@Localizer["Backup"]</div>
-                                <div class="copy-label-orange">*********COPY**********</div>
+                                @if (Order.OrderState != "Voided")
+                                {
+                                    <div class="copy-label-orange">*********COPY**********</div>
+                                }
                             }
                         </div>
                     </div>
@@ -81,20 +91,47 @@
                             {
                                 @foreach (var item in Order.OrderDetails)
                                 {
+                                    var isItemVoided = Order.OrderState == "Voided" || item.IsVoided || (item.VoidAmount > 0 && item.Quantity == 0);
                                     <tr>
                                         @if (_previewMode == "Customer")
                                         {
-                                            <td class="center font-weight-bold">@((item.Quantity * (item.Price ?? 0)).ToString("0.##"))</td>
+                                            <td class="center font-weight-bold">
+                                                @if (isItemVoided)
+                                                {
+                                                    <span style="color: #ef4444; text-decoration: line-through;">@((((item.Quantity > 0 ? item.Quantity : (item.VoidAmount ?? 0))) * (item.Price ?? 0)).ToString("0.##"))</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@((item.Quantity * (item.Price ?? 0)).ToString("0.##"))</span>
+                                                }
+                                            </td>
                                             <td class="center">@item.Price?.ToString("0.##")</td>
                                         }
                                         <td style="font-size: 15px; text-align: right;">
                                             @item.NameAr
+                                            @if (isItemVoided)
+                                            {
+                                                <span style="color: #ef4444; font-weight: 900; margin-right: 4px;">(ملغي)</span>
+                                            }
+                                            else if ((item.VoidAmount ?? 0) > 0 && item.Quantity > 0)
+                                            {
+                                                <span style="color: #ef4444; font-size: 12px; margin-right: 4px;">(ملغي منه: @item.VoidAmount.Value.ToString("0.##"))</span>
+                                            }
                                             @if (!string.IsNullOrEmpty(item.LineComment))
                                             {
                                                 <div class="item-note">⟵ @item.LineComment</div>
                                             }
                                         </td>
-                                        <td class="center font-weight-black" style="font-size: 16px;">@item.Quantity.ToString("0.##")</td>
+                                        <td class="center font-weight-black" style="font-size: 16px;">
+                                            @if (isItemVoided && item.Quantity == 0 && (item.VoidAmount ?? 0) > 0)
+                                            {
+                                                <span style="color: #ef4444;">@item.VoidAmount.Value.ToString("0.##")</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@item.Quantity.ToString("0.##")</span>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                             }
@@ -256,6 +293,21 @@
         border: 2px solid #ff9800;
         padding: 0 10px;
     }
+
+    .void-banner-box {
+        border: 4px solid #ef4444;
+        color: #ef4444;
+        font-size: 28px;
+        font-weight: 950;
+        padding: 4px 24px;
+        margin: 8px 0;
+        text-align: center;
+        letter-spacing: 3px;
+        background: #fef2f2;
+        border-radius: 6px;
+        width: 100%;
+        box-sizing: border-box;
+    }
 </style>
 
 @code {
@@ -265,6 +317,17 @@
 
     private string? _logoBase64;
     private string _previewMode = "Customer";
+
+    private string? BranchNameDisplay
+    {
+        get
+        {
+            var name = !string.IsNullOrWhiteSpace(Order?.BranchName) ? Order.BranchName : _commonProperties.BranchDetails?.Name;
+            if (string.IsNullOrWhiteSpace(name) || name.Equals("Store", StringComparison.OrdinalIgnoreCase) || name.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+                return null;
+            return name;
+        }
+    }
 
     [Inject] private BlazorBase.ERPFrontServices.OrderServices.IOrderSettingsService OrderSettingsService { get; set; } = default!;
 
@@ -337,7 +400,8 @@
                 catch { }
             }
 
-            await PrintOrderService.ReprintOrderAsync(Order.Id, isCopy: true, printCustomer: !printKitchen, printKitchen: printKitchen, printerName: printerName);
+            bool isOrderVoided = Order.OrderState == "Voided";
+            await PrintOrderService.ReprintOrderAsync(Order.Id, isCopy: !isOrderVoided, printCustomer: !printKitchen, printKitchen: printKitchen, printerName: printerName);
             Snackbar.Add(Localizer["SentToPrinter"], Severity.Success);
             MudDialog.Close();
         }

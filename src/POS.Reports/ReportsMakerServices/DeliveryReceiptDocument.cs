@@ -54,11 +54,14 @@ public class DeliveryReceiptDocument : IDocument
 
     private void AddHeader(ref ColumnDescriptor column)
     {
-        column.Item()
-            .AlignCenter()
-            .Text(_receipt.StoreName)
-            .Bold()
-            .FontSize(18);
+        if (!string.IsNullOrWhiteSpace(_receipt.StoreName) && !_receipt.StoreName.Equals("Store", StringComparison.OrdinalIgnoreCase) && !_receipt.StoreName.Equals("Store Name", StringComparison.OrdinalIgnoreCase))
+        {
+            column.Item()
+                .AlignCenter()
+                .Text(_receipt.StoreName)
+                .Bold()
+                .FontSize(18);
+        }
 
         if (!string.IsNullOrEmpty(_receipt.LogoPath) && File.Exists(_receipt.LogoPath))
         {
@@ -76,7 +79,7 @@ public class DeliveryReceiptDocument : IDocument
             .AlignCenter()
             .Text(text =>
             {
-                if (_receipt.IsCopy)
+                if (_receipt.IsCopy && !_receipt.IsVoid)
                 {
                     text.Span("*********COPY**********")
                         .Bold()

@@ -148,7 +148,7 @@ public partial class AllOrdersPage
         bool isDineIn = order.OrderType == "DineIn";
         var parameters = new DialogParameters
         {
-            ["OrderId"] = order.OrderId,
+            ["OrderId"] = order.Id,
             ["IsDineIn"] = isDineIn,
             ["IsDistribution"] = !isDineIn,
             ["InitialDistributionOrder"] = order
