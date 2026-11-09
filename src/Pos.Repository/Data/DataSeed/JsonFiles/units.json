@@ -1,11 +1,127 @@
-[
-  { "ArabicName": "كيلو", "EnglishName": "Kilogram", "Code": "kg" },
-  { "ArabicName": "جرام", "EnglishName": "Gram", "Code": "g" },
-  { "ArabicName": "ليتر", "EnglishName": "Liter", "Code": "l" },
-  { "ArabicName": "مليليتر", "EnglishName": "Milliliter", "Code": "ml" },
-  { "ArabicName": "قطعة", "EnglishName": "Piece", "Code": "pcs" },
-  { "ArabicName": "حبة", "EnglishName": "Unit", "Code": "u" },
-  { "ArabicName": "كرتونة", "EnglishName": "Box", "Code": "box" },
-  { "ArabicName": "زجاجة", "EnglishName": "Bottle", "Code": "btl" },
-  { "ArabicName": "عبوة", "EnglishName": "Pack", "Code": "pk" }
+﻿[
+  {
+    "ArabicName": "كيلو جرام",
+    "EnglishName": "Kilogram",
+    "Code": "kg"
+  },
+  {
+    "ArabicName": "جرام",
+    "EnglishName": "Gram",
+    "Code": "g"
+  },
+  {
+    "ArabicName": "ملي جرام",
+    "EnglishName": "Milligram",
+    "Code": "mg"
+  },
+  {
+    "ArabicName": "طن",
+    "EnglishName": "Ton",
+    "Code": "ton"
+  },
+  {
+    "ArabicName": "لتر",
+    "EnglishName": "Liter",
+    "Code": "L"
+  },
+  {
+    "ArabicName": "ملي لتر",
+    "EnglishName": "Milliliter",
+    "Code": "ml"
+  },
+  {
+    "ArabicName": "جالون",
+    "EnglishName": "Gallon",
+    "Code": "gal"
+  },
+  {
+    "ArabicName": "برميل",
+    "EnglishName": "Barrel",
+    "Code": "bbl"
+  },
+  {
+    "ArabicName": "قطعة",
+    "EnglishName": "Piece",
+    "Code": "pcs"
+  },
+  {
+    "ArabicName": "كرتونة",
+    "EnglishName": "Carton",
+    "Code": "ctn"
+  },
+  {
+    "ArabicName": "علبة",
+    "EnglishName": "Box",
+    "Code": "box"
+  },
+  {
+    "ArabicName": "شيكارة / كيس",
+    "EnglishName": "Bag",
+    "Code": "bag"
+  },
+  {
+    "ArabicName": "صفيحة / كان",
+    "EnglishName": "Tin/Can",
+    "Code": "tin"
+  },
+  {
+    "ArabicName": "رول",
+    "EnglishName": "Roll",
+    "Code": "roll"
+  },
+  {
+    "ArabicName": "دستة",
+    "EnglishName": "Dozen",
+    "Code": "doz"
+  },
+  {
+    "ArabicName": "بالتة",
+    "EnglishName": "Pallet",
+    "Code": "plt"
+  },
+  {
+    "ArabicName": "قفص / صندوق",
+    "EnglishName": "Crate",
+    "Code": "crt"
+  },
+  {
+    "ArabicName": "زجاجة",
+    "EnglishName": "Bottle",
+    "Code": "btl"
+  },
+  {
+    "ArabicName": "برطمان",
+    "EnglishName": "Jar",
+    "Code": "jar"
+  },
+  {
+    "ArabicName": "كيس تفريغ",
+    "EnglishName": "Pouch",
+    "Code": "pch"
+  },
+  {
+    "ArabicName": "حزمة",
+    "EnglishName": "Bundle",
+    "Code": "bdl"
+  },
+  {
+    "ArabicName": "قالب",
+    "EnglishName": "Block/Bar",
+    "Code": "bar"
+  },
+  {
+    "ArabicName": "متر",
+    "EnglishName": "Meter",
+    "Code": "m"
+  },
+  {
+    "ArabicName": "سنتيمتر",
+    "EnglishName": "Centimeter",
+    "Code": "cm"
+  },
+  {
+    "ArabicName": "باكت",
+    "EnglishName": "Pack",
+    "Code": "pk"
+  }
 ]
